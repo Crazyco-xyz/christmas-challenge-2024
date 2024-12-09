@@ -1,1 +1,5 @@
-*/__pycache__/*
+# Ignore pycache
+**/__pycache__/**
+
+# Ignore data.db (file for storing user and file data)
+data.db

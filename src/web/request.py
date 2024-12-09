@@ -57,6 +57,16 @@ class WebRequest(abc.ABC):
 
         return self._body
 
+    @property
+    def ip(self) -> str:
+        """The IP this request originates from
+
+        Returns:
+            str: The IP address
+        """
+
+        return self._addr[0]
+
     @abc.abstractmethod
     def handle(self) -> None:
         """Abstract method for reading in the request"""
