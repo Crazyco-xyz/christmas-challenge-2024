@@ -311,7 +311,9 @@ class APIHandler(WebHandler):
             self._response_invalid_data(response, "You can't do that!")
 
         # Check if folder exists
-        if new_path is None or not file_db.check_folder_id(new_path):
+        if new_path is None or not (
+            file_db.check_folder_id(new_path) or len(new_path) == 0
+        ):
             self._response_invalid_data(response, "The target path does not exist.")
             return
 
