@@ -236,6 +236,10 @@ class APIHandler(WebHandler):
             self._response_invalid_data(response, "You cannot download this file!")
             return
 
+        if file_db.check_folder_id(file_id):
+            self._response_invalid_data(response, "You cannot download a folder!")
+            return
+
         # Download file
         with open(os.path.join(constants.FILES, file_id), "rb") as rf:
             response.body = rf.read()
