@@ -23,4 +23,4 @@ class CaseInsensitiveDict[_T]:
         return name.lower() in self._data
 
     def get(self, name: str, default: _T) -> _T:
-        return self._data.get(name, default)
+        return self._data.get(name.lower(), default)

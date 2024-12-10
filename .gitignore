@@ -3,3 +3,6 @@
 
 # Ignore data.db (file for storing user and file data)
 data.db
+
+# Ignore user files
+files/**

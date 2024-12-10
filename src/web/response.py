@@ -1,6 +1,7 @@
 import abc
+import json
 import socket
-from typing import Optional
+from typing import Any, Optional
 
 
 class WebResponse(abc.ABC):
@@ -77,6 +78,9 @@ class WebResponse(abc.ABC):
         """
 
         self._body = val
+
+    def json_body(self, json_data: dict[str, Any]) -> None:
+        self._body = json.dumps(json_data).encode()
 
     @abc.abstractmethod
     def send(self) -> None:

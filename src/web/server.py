@@ -68,7 +68,13 @@ class WebServer:
                     continue
 
                 sock, addr = self._socket.accept()
-                self._handle(sock, addr)
+
+                threading.Thread(
+                    target=self._handle,
+                    args=(sock, addr),
+                    name="RequestHandler",
+                    daemon=True,
+                ).start()
 
             except Exception:
                 LOG.debug(
@@ -102,6 +108,14 @@ class WebServer:
                 handler.handle(response)
 
                 # Send the response modified by the request handler and return
+                LOG.info(
+                    "%s: %d [%s] for %s by %s",
+                    handler.__class__.__name__,
+                    response.code,
+                    response.msg,
+                    request.path,
+                    addr[0],
+                )
                 response.send()
                 return
 

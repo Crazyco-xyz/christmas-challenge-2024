@@ -2,7 +2,6 @@ import hashlib
 import time
 from typing import Optional
 from proj_types.singleton import singleton
-from storage.datadb import DataDB
 
 
 @singleton
@@ -21,6 +20,8 @@ class SessionStorage:
         Returns:
             Session: The session created for this IP
         """
+
+        from storage.datadb import DataDB
 
         # Check if user/passwd combo is correct
         if not DataDB().users().login(name, passwd):

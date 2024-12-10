@@ -1,12 +1,13 @@
 import abc
 import sqlite3
-from typing import Any, Iterable, Optional
+from typing import Any, Callable, Optional
+
+from proj_types.promise import SQLPromise
 
 
 class Table(abc.ABC):
-    def __init__(self, conn: sqlite3.Connection, cur: sqlite3.Cursor) -> None:
-        self._conn = conn
-        self._cur = cur
+    def __init__(self, task_callback: Callable[[SQLPromise], None]) -> None:
+        self._task_callback = task_callback
 
     @abc.abstractmethod
     def name(self) -> str:
@@ -25,6 +26,24 @@ class Table(abc.ABC):
         """
 
         pass
+
+    def execute_fetch(self, query: str, args=()) -> Callable[[list[str]], list[str]]:
+        def _execute(_: sqlite3.Connection, cur: sqlite3.Cursor) -> list[str]:
+            cur.execute(query, args)
+            return cur.fetchall()
+
+        promise = SQLPromise(_execute)
+        self._task_callback(promise)
+        return promise.wait
+
+    def execute_commit(self, query: str, args=()) -> Callable[[None], None]:
+        def _execute(conn: sqlite3.Connection, cur: sqlite3.Cursor) -> None:
+            cur.execute(query, args)
+            conn.commit()
+
+        promise = SQLPromise(_execute)
+        self._task_callback(promise)
+        return promise.wait
 
     def select(self, columns: str, where: Optional[str], args=()) -> list[Any]:
         """Simplifies a SELECT request
@@ -47,8 +66,7 @@ class Table(abc.ABC):
             query.append(where)
 
         # Execute query and fetch results
-        self._cur.execute(" ".join(query), args)
-        return self._cur.fetchall()
+        return self.execute_fetch(" ".join(query), args)([])
 
     def insert(self, **items: Any) -> None:
         """Simplifies an INSERT INTO this table
@@ -71,113 +89,36 @@ class Table(abc.ABC):
         query.append(")")
 
         # Execute the query
-        self._cur.execute(" ".join(query), args)
-        self._conn.commit()
+        self.execute_commit(" ".join(query), args)(None)
 
-
-class UsersTable(Table):
-    def name(self) -> str:
-        return "users"
-
-    def columns(self) -> list[str]:
-        return [
-            "user_id TEXT PRIMARY KEY",
-            "email TEXT NOT NULL UNIQUE",
-            "password TEXT NOT NULL",
-            "admin INTEGER",
-        ]
-
-    def exists(self, userid: str, email: str) -> bool:
-        """Checks if the userid or email already exists
+    def update(self, set: str, where: Optional[str], args=()) -> None:
+        """Updates a row in the table
 
         Args:
-            userid (str): The userid to check for
-            email (str): The email to check for
-
-        Returns:
-            bool: Whether one or both already exist
+            set (str): The SET part of the query
+            where (Optional[str]): The WHERE part of the query
+            args (tuple, optional): Arguments. Defaults to ().
         """
 
-        return self.id_exists(userid) or self.email_exists(email)
+        query = ["UPDATE", self.name(), "SET", set]
 
-    def email_exists(self, email: str) -> bool:
-        """Checks if an email has already been taken
+        if where:
+            query.append("WHERE")
+            query.append(where)
+
+        self.execute_commit(" ".join(query), args)(None)
+
+    def delete(self, where: str, args=()) -> None:
+        """Deletes a row from the table
 
         Args:
-            email (str): The email to test for
-
-        Returns:
-            bool: Whether the email exists
+            where (str): The WHERE part of the query
+            args (tuple, optional): Arguments. Defaults to ().
         """
 
-        users = self.select("*", "email = ?", (email))
+        query = ["DELETE FROM", self.name(), "WHERE", where]
 
-        return len(users) > 0
-
-    def id_exists(self, userid: str) -> bool:
-        """Checks if a UserID has already been taken
-
-        Args:
-            userid (str): The UserID to test for
-
-        Returns:
-            bool: Whether the UserID exists
-        """
-
-        users = self.select("*", "user_id = ?", (userid))
-
-        return len(users) > 0
-
-    def register(self, userid: str, email: str, passwd: str, admin: bool) -> bool:
-        """Registers the user
-
-        Args:
-            userid (str): The name of the user
-            email (str): The email of the user
-            passwd (str): The hashed password of the user
-            admin (bool): Whether this user is an admin
-
-        Returns:
-            bool: Whether the registration was successful
-        """
-
-        if self.exists(userid, email):
-            return False
-
-        self.insert(user_id=userid, email=email, password=passwd, admin=int(admin))
-        return True
-
-    def login(self, userid: str, passwd: str) -> bool:
-        """Checks if the login credentials are correct
-
-        Args:
-            userid (str): The name of the user
-            passwd (str): The hashed password of the user
-
-        Returns:
-            bool: Whether the login was successful
-        """
-
-        if not self.exists(userid, ""):
-            return False
-
-        users = self.select("*", "user_id = ? AND password = ?", (userid, passwd))
-
-        return len(users) > 0
-
-
-class FilesTable(Table):
-    def name(self) -> str:
-        return "files"
-
-    def columns(self) -> list[str]:
-        return [
-            "file_id TEXT PRIMARY KEY",
-            "user_id TEXT NOT NULL",
-            "file_type INTEGER NOT NULL",
-            "file_location TEXT NOT NULL",
-            "file_name TEXT NOT NULL",
-        ]
+        self.execute_commit(" ".join(query), args)(None)
 
 
 class ShareTable(Table):
