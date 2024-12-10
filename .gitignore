@@ -6,3 +6,7 @@ data.db
 
 # Ignore user files
 files/**
+
+# Ignore HTTPS key and certificate
+cert.pem
+key.pem

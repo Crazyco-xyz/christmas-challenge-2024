@@ -1,9 +1,12 @@
+import os
 import select
 import socket
+import ssl
 import threading
 import time
 from typing import Type
 
+import constants
 from log import LOG
 from proj_types.proto_error import ProtocolError
 from web.handler import WebHandler
@@ -17,6 +20,7 @@ class WebServer:
         proto_handler: Type[WebRequest],
         request_handlers: list[Type[WebHandler]],
         hostname: str = "0.0.0.0",
+        use_tls: bool = False,
     ) -> None:
         self._port: int = port
 
@@ -29,9 +33,39 @@ class WebServer:
 
         # Create the socket used for receiving requests
         self._socket: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        if use_tls:
+            self._setup_tls()
+
         # Fix for linux blocking the port after exit
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._socket.bind((self._hostname, self._port))
+
+    def _setup_tls(self) -> None:
+        """Wraps the socket inside a TLS wrapper
+
+        Raises:
+            FileNotFoundError: When the key or certificate could not be found
+        """
+
+        cert_path = os.path.join(constants.ROOT, "cert.pem")
+        key_path = os.path.join(constants.ROOT, "key.pem")
+
+        # Check if the certificate and key exist
+        if not os.path.isfile(cert_path) or not os.path.isfile(key_path):
+            raise FileNotFoundError(
+                "The key or certificate file for TLS could not be found."
+            )
+
+        # Create an SSL context and load the cert/key
+        context = ssl.SSLContext()
+        context.load_cert_chain(
+            certfile=cert_path,
+            keyfile=key_path,
+        )
+
+        # Wrap the socket inside the context
+        self._socket = context.wrap_socket(self._socket, server_side=True)
 
     def start_background(self) -> None:
         """Starts the `start_blocking` method in a separate Thread"""
@@ -39,7 +73,7 @@ class WebServer:
         threading.Thread(
             target=self.start_blocking,
             daemon=True,
-            name=f"WebServer@{self._port}",
+            name="WebServer",
         ).start()
 
     def start_blocking(self) -> None:
