@@ -1,0 +1,78 @@
+@import url("/s/color.css");
+
+body {
+  font-family: monospace;
+  font-size: 16px;
+
+  background-color: var(--color-background);
+  color: var(--color-text);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#options {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(100vw - 20px);
+  height: 50px;
+
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+}
+
+#options .save {
+  text-transform: uppercase;
+  padding: 7px;
+  border-radius: 5px;
+  user-select: none;
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+}
+
+#options .save .icon {
+  margin-left: 3px;
+  margin-right: 3px;
+}
+
+#options .save .name {
+  line-height: 20px;
+}
+
+#options .save:hover {
+  background-color: var(--color-sidebar-hover);
+}
+
+ol {
+  position: absolute;
+  left: 0;
+  top: 50px;
+
+  padding: 0px;
+  margin: 0px;
+
+  width: 100vw;
+  min-height: calc(100vh - 50px);
+  list-style: none;
+  counter-reset: item;
+  outline: none;
+}
+
+li {
+  counter-increment: item;
+}
+
+li:before {
+  content: counter(item);
+  border-radius: 100%;
+  width: 60px;
+  text-align: right;
+  display: inline-block;
+  margin-right: 15px;
+}
+
+ol :nth-child(even) {
+  background-color: var(--color-sidebar);
+}

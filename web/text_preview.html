@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Text Editor</title>
+    <link rel="stylesheet" href="/s/textpreview.css" />
+    <link rel="stylesheet" href="/s/fontawesome/css/all.css" />
+  </head>
+  <body>
+    <div id="options">
+      <div class="save">
+        <i class="fa-regular fa-floppy-disk icon"></i>
+        <span class="name">Save</span>
+      </div>
+    </div>
+    <ol
+      contenteditable
+      oninput="if (this.innerHTML == '') this.innerHTML = '<li><br></li>'"
+    >
+      <li>Hello there!</li>
+      <li>How are you?</li>
+    </ol>
+  </body>
+</html>

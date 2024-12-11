@@ -1,0 +1,103 @@
+/*
+ * Sidebar
+ */
+#sidebar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: 247px;
+  z-index: 10;
+
+  background-color: var(--color-sidebar);
+  border-right: 1px solid var(--color-border);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: start;
+}
+
+/*
+ * Icons left of text
+ */
+#sidebar .icon {
+  margin-left: 7px;
+  margin-right: 7px;
+  width: 20px;
+}
+
+/*
+ * Button icon right of text
+ */
+#sidebar .btn-icon {
+  position: absolute;
+  right: 15px;
+  font-size: 15px;
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-icon:hover {
+  background-color: #434343;
+}
+
+/*
+ * Bold sidebar text
+ */
+#sidebar .bold {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+/*
+ * Any div inside the sidebar
+ */
+#sidebar div {
+  width: 90%;
+  height: 30px;
+  background-color: transparent;
+  transition: background 0.2s;
+  border-radius: 5px;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+  align-items: center;
+}
+
+/*
+ * Divs inside the sidebar that are clickable
+ */
+#sidebar .clickable {
+  cursor: pointer;
+}
+
+#sidebar .clickable:hover {
+  background-color: var(--color-sidebar-hover);
+}
+
+/*
+ * Spacer between other divs
+ */
+#sidebar .spacer {
+  height: 10px;
+}
+
+/*
+ * Names of elements
+ */
+#sidebar .name {
+  line-height: 20px;
+}
+
+#sidebar .title {
+  text-transform: lowercase;
+  font-variant: small-caps;
+  font-weight: 900;
+  font-size: 15px;
+  height: 30px;
+  color: var(--color-text-secondary);
+}

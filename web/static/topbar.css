@@ -1,0 +1,87 @@
+/*
+ * Topbar containing breadcrumbs and navigation
+ */
+#topbar {
+  position: absolute;
+  left: 248px;
+  top: 0;
+  z-index: 1;
+  width: calc(100vw - 248px - 20px);
+  height: 50px;
+  padding-left: 10px;
+  padding-right: 10px;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/*
+ * Breadcrumb list
+ */
+#topbar .breadcrumbs {
+  display: flex;
+  gap: 1px;
+
+  align-items: center;
+}
+
+/*
+ * Spacer between breadcrumbs (`/`)
+ */
+#topbar .breadcrumbs .spacer {
+  color: var(--color-text-dark);
+  font-size: 15px;
+}
+
+/*
+ * The actual breadcrumbs
+ */
+#topbar .breadcrumbs div {
+  padding: 5px;
+  color: var(--color-text);
+  line-height: 20px;
+  border-radius: 5px;
+}
+
+/*
+ * The breadcrumbs that can be hovered
+ */
+#topbar .breadcrumbs .hover {
+  cursor: pointer;
+}
+
+#topbar .breadcrumbs .hover:hover {
+  background-color: var(--color-sidebar-hover);
+}
+
+/*
+ * The icon of the breadcrumbs
+ */
+#topbar .breadcrumbs .icon {
+  margin-right: 3px;
+  margin-left: 3px;
+}
+
+/*
+ * The options panel for navigation
+ */
+#topbar .options {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/*
+ * The button for each option
+ */
+#topbar .options .btn {
+  padding: 5px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#topbar .options .btn:hover {
+  background-color: var(--color-sidebar-hover);
+}
