@@ -1,8 +1,14 @@
+import gzip
 import socket
+
+import time
+import urllib.parse
 import constants
 from log import LOG
+from proj_types.case_insensitive_dict import CaseInsensitiveDict
 from proj_types.proto_error import ProtocolError
 from proj_types.webmethod import WebMethod
+from web.encoding import Encoding
 from web.request import WebRequest
 from web.response import WebResponse
 
@@ -54,7 +60,7 @@ class HttpRequest(WebRequest):
 
         # Parse status into variables
         self._method = WebMethod(status[0])
-        self._path = status[1]
+        self._path = urllib.parse.unquote(status[1])
 
     def _read_headers(self) -> None:
         """Read all provided headers
@@ -105,12 +111,14 @@ class HttpRequest(WebRequest):
             WebResponse: The HTTP response based on this request
         """
 
-        return HttpResponse(self._socket)
+        return HttpResponse(self._socket, self.headers)
 
 
 class HttpResponse(WebResponse):
-    def __init__(self, sock: socket.socket) -> None:
-        super().__init__(sock)
+    def __init__(
+        self, sock: socket.socket, recv_headers: CaseInsensitiveDict[str]
+    ) -> None:
+        super().__init__(sock, recv_headers)
 
     def _send_line(self, line: str) -> None:
         """Sends the specified line plus line terminators `\r\n`
@@ -126,6 +134,7 @@ class HttpResponse(WebResponse):
 
         # Append `Content-Length` if necessary
         if self.body is not None:
+            self._compress_body()
             self.headers["Content-Length"] = str(len(self.body))
 
         self._send_status()
@@ -133,6 +142,37 @@ class HttpResponse(WebResponse):
         self._send_body()
 
         self._socket.close()
+
+    def _compress_body(self) -> None:
+        """Tries to compress the body using the provided encodings"""
+
+        # Check if there are supported encodings and a body
+        if "Accept-Encoding" not in self._recv_headers or not self.body:
+            return
+
+        accept_encoding = self._recv_headers["Accept-Encoding"]
+
+        used_encodings: list[str] = []
+        encoded_body: bytes = self.body
+
+        # Go through all our encodings and apply them to the body
+        for encoding in Encoding.supported_encodings():
+            # Check if the client accepts the encoding
+            if encoding.name() not in accept_encoding:
+                continue
+
+            # Check if the encoded body is smaller than original
+            tested_encoding = encoding.compress(encoded_body)
+            if len(tested_encoding) > len(encoded_body):
+                continue
+
+            # Apply encoding to the body and header list
+            encoded_body = tested_encoding
+            used_encodings.append(encoding.name())
+
+        # Create the Content-Encoding header and set the new body
+        self.headers["Content-Encoding"] = ", ".join(used_encodings)
+        self.body = encoded_body
 
     def _send_status(self) -> None:
         """Sends the status line"""
@@ -142,7 +182,9 @@ class HttpResponse(WebResponse):
     def _send_headers(self) -> None:
         """Sends all headers plus the empty line denoting the end of headers"""
 
-        for key, val in self.headers.items():
+        headers = self._default_headers() | self.headers
+
+        for key, val in headers.items():
             self._send_line(f"{key}: {val}")
 
         self._send_line("")
@@ -154,3 +196,8 @@ class HttpResponse(WebResponse):
             return
 
         self._socket.sendall(self.body)
+
+    def _default_headers(self) -> dict[str, str]:
+        return {
+            "Date": time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime()),
+        }

@@ -6,6 +6,7 @@ from typing import Any, Optional
 
 import constants
 from log import LOG
+from proj_types.webmethod import WebMethod
 from storage.datadb import DataDB
 from web.handler import WebHandler
 from web.response import WebResponse
@@ -67,9 +68,18 @@ class APIHandler(WebHandler):
         elif path[0] == "delete":
             self._delete(body, response)
 
+        elif path[0] == "folder":
+            self._folder(body, response)
+
         elif DataDB().files().check_file_id(path[0]):
-            # User requests contents of a file
-            self._download(path, response)
+            if self._request.method == WebMethod.GET:
+
+                # User requests contents of a file
+                self._download(path, response)
+            elif self._request.method == WebMethod.POST:
+
+                # User overwrites a file
+                self._update(path, self._request.body or b"", response)
 
     def _check_email(self, email: str) -> bool:
         """Checks the provided Email address
@@ -207,8 +217,17 @@ class APIHandler(WebHandler):
             self._response_invalid_data(response, "Invalid Data.")
             return
 
+        file_db = DataDB().files()
+
+        # Check if a file with this name already exists
+        if not file_db.name_check(session, parent_dir, file_name):
+            self._response_invalid_data(
+                response, "A file with this name already exists!"
+            )
+            return
+
         # Enter file into database
-        file_id = DataDB().files().make_file(session, parent_dir, file_name)
+        file_id = file_db.make_file(session, parent_dir, file_name)
 
         # Write file to disk
         with open(os.path.join(constants.FILES, file_id), "wb") as file:
@@ -216,6 +235,41 @@ class APIHandler(WebHandler):
 
         # Respond with the file_id for JS
         response.json_body({"file_id": file_id})
+
+    def _update(self, path: list[str], body: bytes, response: WebResponse) -> None:
+        """Updates the contents of an already existing file
+
+        Args:
+            path (list[str]): The path containing the file id
+            body (bytes): The data to save into the file
+            response (WebResponse): The response to this request
+        """
+
+        # Check if the user is logged in
+        if not (session := self._check_login(response)):
+            return
+
+        # Check if the file_id is passed into the
+        if len(path) < 1:
+            self._response_invalid_data(response, "No file selected!")
+            return
+
+        file_db = DataDB().files()
+        file_id = path[0]
+
+        # Check if the file exists and the user has access to it
+        if not file_db.check_file_id(file_id) or not file_db.can_download(
+            session, file_id
+        ):
+            self._response_invalid_data(
+                response,
+                "The file does not exist or you do not have permissions for it.",
+            )
+            return
+
+        # Modify the contents of the file
+        with open(os.path.join(constants.FILES, file_id), "wb") as wf:
+            wf.write(body)
 
     def _download(self, path: list[str], response: WebResponse) -> None:
         """Performs a file download
@@ -343,4 +397,25 @@ class APIHandler(WebHandler):
             self._response_invalid_data(response, "You can't do that!")
 
         file_db.delete_file(file_id)
-        os.remove(os.path.join(constants.FILES, file_id))
+
+    def _folder(self, body: dict[str, Any], response: WebResponse) -> None:
+
+        # Check if the user is logged in
+        if not (session := self._check_login(response)):
+            return
+
+        file_db = DataDB().files()
+        parent_id = body.get("parent_id", None)
+        folder_name = body.get("folder_name", None)
+
+        if parent_id is None or folder_name is None or len(folder_name) == 0:
+            self._response_invalid_data(response, "No data sent!")
+            return
+
+        if not file_db.check_folder_id(parent_id):
+            self._response_invalid_data(response, "The parent folder does not exist!")
+            return
+
+        folder_id = file_db.make_folder(session, parent_id, folder_name)
+
+        response.json_body({"folder_id": folder_id})

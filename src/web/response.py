@@ -3,10 +3,17 @@ import json
 import socket
 from typing import Any, Optional
 
+from proj_types.case_insensitive_dict import CaseInsensitiveDict
+
 
 class WebResponse(abc.ABC):
-    def __init__(self, sock: socket.socket) -> None:
+    def __init__(
+        self,
+        sock: socket.socket,
+        recv_headers: CaseInsensitiveDict[str],
+    ) -> None:
         self._socket: socket.socket = sock
+        self._recv_headers: CaseInsensitiveDict[str] = recv_headers
 
         self._code: int = 200
         self._msg: str = "OK"
