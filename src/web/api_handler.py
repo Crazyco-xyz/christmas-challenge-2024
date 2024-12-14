@@ -11,6 +11,7 @@ from storage.datadb import DataDB
 from web.handler import WebHandler
 from web.response import WebResponse
 from web.session import Session, SessionStorage
+from web.socket_data import DataReceiver
 
 
 class APIHandler(WebHandler):
@@ -36,6 +37,9 @@ class APIHandler(WebHandler):
         if contype != "application/json":
             return {"data": (self._request.body, contype)}
 
+        if not isinstance(self._request.body, bytes):
+            return {}
+
         try:
             return json.loads(self._request.body)
         except json.JSONDecodeError:
@@ -56,8 +60,11 @@ class APIHandler(WebHandler):
         elif path[0] == "login":
             self._login(body, response)
 
+        elif path[0] == "user":
+            self._user(response)
+
         elif path[0] == "upload":
-            self._upload(path, self._request.body or b"", response)
+            self._upload(path, self._request.body, response)
 
         elif path[0] == "rename":
             self._rename(body, response)
@@ -71,6 +78,9 @@ class APIHandler(WebHandler):
         elif path[0] == "folder":
             self._folder(body, response)
 
+        elif path[0] == "listall":
+            self._list_all(response)
+
         elif DataDB().files().check_file_id(path[0]):
             if self._request.method == WebMethod.GET:
 
@@ -79,7 +89,7 @@ class APIHandler(WebHandler):
             elif self._request.method == WebMethod.POST:
 
                 # User overwrites a file
-                self._update(path, self._request.body or b"", response)
+                self._update(path, self._request.body, response)
 
     def _check_email(self, email: str) -> bool:
         """Checks the provided Email address
@@ -109,8 +119,8 @@ class APIHandler(WebHandler):
             message (str): The message to show to the user
         """
 
-        response.code = 400
-        response.msg = "Invalid Data"
+        response.code = 500
+        response.msg = "Invalid Form Data"
         response.json_body({"message": message})
 
     def _register(self, body: dict[str, Any], response: WebResponse) -> None:
@@ -156,6 +166,8 @@ class APIHandler(WebHandler):
         # Register user using data
         userdb.register(userid, email, password, False)
 
+        response.json_body({"location": "/login"})
+
     def _login(self, body: dict[str, Any], response: WebResponse) -> None:
         """Logs the user in using the provided user data
 
@@ -190,8 +202,27 @@ class APIHandler(WebHandler):
         response.headers["Set-Cookie"] = (
             f"session={session.session_id}; SameSite=Lax; HttpOnly; Path=/"
         )
+        response.json_body({"location": f"/~{userid}/"})
 
-    def _upload(self, path: list[str], body: bytes, response: WebResponse) -> None:
+    def _user(self, response: WebResponse) -> None:
+        """Queries user information
+
+        Args:
+            response (WebResponse): The response to this request
+        """
+
+        # Check if the user is logged in
+        if not (session := self._check_login(response)):
+            return
+
+        response.json_body({"user_name": session.userid})
+
+    def _upload(
+        self,
+        path: list[str],
+        body: Optional[bytes | DataReceiver],
+        response: WebResponse,
+    ) -> None:
         """Performs a file upload
 
         Args:
@@ -199,6 +230,10 @@ class APIHandler(WebHandler):
             body (bytes): The raw file (body) in bytes
             response (WebResponse): The response to this request
         """
+
+        if body is None:
+            self._response_invalid_data(response, "No data provided!")
+            return
 
         # Check if the user is logged in
         if not (session := self._check_login(response)):
@@ -231,12 +266,20 @@ class APIHandler(WebHandler):
 
         # Write file to disk
         with open(os.path.join(constants.FILES, file_id), "wb") as file:
-            file.write(body)
+            if isinstance(body, DataReceiver):
+                body.receive_into(file)
+            else:
+                file.write(body)
 
         # Respond with the file_id for JS
         response.json_body({"file_id": file_id})
 
-    def _update(self, path: list[str], body: bytes, response: WebResponse) -> None:
+    def _update(
+        self,
+        path: list[str],
+        body: Optional[bytes | DataReceiver],
+        response: WebResponse,
+    ) -> None:
         """Updates the contents of an already existing file
 
         Args:
@@ -244,6 +287,10 @@ class APIHandler(WebHandler):
             body (bytes): The data to save into the file
             response (WebResponse): The response to this request
         """
+
+        if body is None:
+            self._response_invalid_data(response, "No data provided!")
+            return
 
         # Check if the user is logged in
         if not (session := self._check_login(response)):
@@ -269,7 +316,10 @@ class APIHandler(WebHandler):
 
         # Modify the contents of the file
         with open(os.path.join(constants.FILES, file_id), "wb") as wf:
-            wf.write(body)
+            if isinstance(body, DataReceiver):
+                body.receive_into(wf)
+            else:
+                wf.write(body)
 
     def _download(self, path: list[str], response: WebResponse) -> None:
         """Performs a file download
@@ -283,9 +333,13 @@ class APIHandler(WebHandler):
         if not (session := self._check_login(response)):
             return
 
-        # Check if user has permissions to download file
         file_db = DataDB().files()
         file_id = path[0]
+
+        # Check if the file should be downloaded
+        do_download = path[1] == "download" if len(path) > 1 else False
+
+        # Check if user has permissions to download file
         if not file_db.can_download(session, file_id):
             self._response_invalid_data(response, "You cannot download this file!")
             return
@@ -303,6 +357,12 @@ class APIHandler(WebHandler):
             mimetypes.guess_type(file_db.get_name(file_id))[0]
             or "application/octet-stream"
         )
+
+        # Add content disposition for download
+        if do_download:
+            response.headers["Content-Disposition"] = (
+                f'attachment; filename="{file_db.get_name(file_id)}"'
+            )
 
     def _rename(self, body: dict[str, Any], response: WebResponse) -> None:
         """Renames a file selected in the body to a new name
@@ -408,14 +468,27 @@ class APIHandler(WebHandler):
         parent_id = body.get("parent_id", None)
         folder_name = body.get("folder_name", None)
 
-        if parent_id is None or folder_name is None or len(folder_name) == 0:
+        if parent_id is None or folder_name is None:
             self._response_invalid_data(response, "No data sent!")
             return
 
-        if not file_db.check_folder_id(parent_id):
+        if len(parent_id) > 0 and not file_db.check_folder_id(parent_id):
             self._response_invalid_data(response, "The parent folder does not exist!")
             return
 
         folder_id = file_db.make_folder(session, parent_id, folder_name)
 
         response.json_body({"folder_id": folder_id})
+
+    def _list_all(self, response: WebResponse) -> None:
+        """Lists all directories and files belonging to the user
+
+        Args:
+            response (WebResponse): The response to this request
+        """
+
+        # Check if the user is logged in
+        if not (session := self._check_login(response)):
+            return
+
+        response.json_body(DataDB().files().list_all(session))

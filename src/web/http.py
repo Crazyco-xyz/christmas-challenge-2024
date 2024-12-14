@@ -11,6 +11,7 @@ from proj_types.webmethod import WebMethod
 from web.encoding import Encoding
 from web.request import WebRequest
 from web.response import WebResponse
+from web.socket_data import DataReceiver
 
 
 class HttpRequest(WebRequest):
@@ -101,6 +102,10 @@ class HttpRequest(WebRequest):
             content_length = int(self._headers["Content-Length"])
         except ValueError as e:
             raise ProtocolError("Content-Length must be a number!", e)
+
+        if content_length >= DataReceiver.CHUNK_LENGTH:
+            self._body = DataReceiver(self._socket, content_length)
+            return
 
         # Receive the body
         self._body = self._socket.recv(content_length)

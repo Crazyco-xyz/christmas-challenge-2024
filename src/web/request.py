@@ -5,6 +5,7 @@ from typing import Optional, Type
 from proj_types.case_insensitive_dict import CaseInsensitiveDict
 from proj_types.webmethod import WebMethod
 from web.response import WebResponse
+from web.socket_data import DataReceiver
 
 
 class WebRequest(abc.ABC):
@@ -15,7 +16,7 @@ class WebRequest(abc.ABC):
         self._path: Optional[str] = None
         self._method: Optional[WebMethod] = None
         self._headers: CaseInsensitiveDict[str] = CaseInsensitiveDict()
-        self._body: Optional[bytes] = None
+        self._body: Optional[bytes | DataReceiver] = None
 
     @property
     def path(self) -> Optional[str]:
@@ -48,7 +49,7 @@ class WebRequest(abc.ABC):
         return self._headers
 
     @property
-    def body(self) -> Optional[bytes]:
+    def body(self) -> Optional[bytes | DataReceiver]:
         """The request body
 
         Returns:

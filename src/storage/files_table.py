@@ -203,3 +203,33 @@ class FilesTable(Table):
         )
 
         return len(files) == 0
+
+    def list_all(self, user: Session, root: str = "") -> dict[str, str | dict]:
+        """Lists all files and directories inside the root directory
+
+        Args:
+            root (str, optional): The root directory as id. Defaults to "".
+
+        Returns:
+            dict[str, str|dict]: The dictionary containing all files and folders
+        """
+
+        file_dict = {}
+
+        files = self.select(
+            "file_id, file_name, file_type",
+            "user_id = ? AND file_location = ?",
+            (user.userid, root),
+        )
+
+        for f in files:
+            file_id = f[0]
+            file_name = f[1]
+            file_type = f[2]
+
+            if file_type == FileType.FOLDER.value:
+                file_dict[file_id] = {"_name": file_name} | self.list_all(user, file_id)
+            else:
+                file_dict[file_id] = file_name
+
+        return file_dict
