@@ -1,0 +1,110 @@
+[
+  {
+    "ext": ["txt", "yml", "xml", "html", "md", "csv"],
+    "icon": "fa-file-lines"
+  },
+  {
+    "ext": ["pdf"],
+    "icon": "fa-file-pdf"
+  },
+  {
+    "ext": ["docx", "doc", "xlsx", "docm", "dot", "dotm", "dotx", "odt", "wps"],
+    "icon": "fa-file-word"
+  },
+  {
+    "ext": [
+      "ods",
+      "xla",
+      "xlam",
+      "xls",
+      "xlsb",
+      "xlsm",
+      "xlsx",
+      "xlt",
+      "xltm",
+      "xltx",
+      "xlw"
+    ],
+    "icon": "fa-file-excel"
+  },
+  {
+    "ext": [
+      "zip",
+      "gz",
+      "iso",
+      "tar",
+      "7z",
+      "apk",
+      "cab",
+      "dmg",
+      "jar",
+      "rar",
+      "tgz",
+      "tlz",
+      "txz",
+      "wim",
+      ""
+    ],
+    "icon": "fa-file-zipper"
+  },
+  {
+    "ext": ["avi", "webm", "mp4", "wmv", "mkv", "mov"],
+    "icon": "fa-file-video"
+  },
+  {
+    "ext": [
+      "jpg",
+      "jpeg",
+      "gif",
+      "png",
+      "webp",
+      "heif",
+      "avif",
+      "tiff",
+      "bmp",
+      "ico",
+      "pdn",
+      "svg"
+    ],
+    "icon": "fa-file-image"
+  },
+  {
+    "ext": [
+      "c",
+      "cpp",
+      "java",
+      "py",
+      "js",
+      "ts",
+      "cs",
+      "swift",
+      "dta",
+      "pl",
+      "sh",
+      "bat",
+      "com",
+      "exe"
+    ],
+    "icon": "fa-file-code"
+  },
+  {
+    "ext": [
+      "mp3",
+      "wma",
+      "snd",
+      "wav",
+      "ra",
+      "au",
+      "aac",
+      "flac",
+      "vlc",
+      "aiff",
+      "m4a",
+      "ogg",
+      "opus",
+      "tta",
+      "wma"
+    ],
+    "icon": "fa-file-audio"
+  }
+]

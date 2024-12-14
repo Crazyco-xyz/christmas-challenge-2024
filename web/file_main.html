@@ -2,185 +2,91 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Your Files</title>
-    <link rel="stylesheet" href="/s/main.css" />
-    <link rel="stylesheet" href="/s/filepicker.css" />
+    <title>Your Folders</title>
+    <link rel="stylesheet" href="/s/css/main.css" />
+    <link rel="stylesheet" href="/s/css/filepicker.css" />
     <link rel="stylesheet" href="/s/fontawesome/css/all.css" />
   </head>
   <body>
     <!-- Sidebar -->
     <div id="sidebar">
-      <div class="spacer"></div>
+      <div class="bar spacer"></div>
 
       <!-- User icon and logout -->
-      <div class="bold">
+      <div class="bar bold">
         <i class="fa-regular fa-user icon"></i>
-        <span class="name">Joa's Files</span>
+        <span class="name" id="user">Your Files</span>
         <span class="btn"></span>
 
-        <i class="fa-solid fa-arrow-right-from-bracket btn-icon"></i>
+        <a class="btn-icon" href="/logout"
+          ><i class="fa-solid fa-arrow-right-from-bracket"></i
+        ></a>
       </div>
       <div class="spacer"></div>
 
-      <!-- Search bar -->
-      <div class="clickable">
-        <i class="fa-solid fa-magnifying-glass icon"></i>
-        <span class="name">Search</span>
-      </div>
-
       <!-- Home tab -->
-      <div class="clickable">
+      <div class="bar clickable" id="home">
         <i class="fa-solid fa-house icon"></i>
         <span class="name">Home</span>
       </div>
       <div class="spacer"></div>
 
-      <div class="title">Your Files</div>
+      <div class="bar title">Your Files</div>
 
-      <!-- User's folders inside root -->
-      <div class="clickable">
-        <i class="fa-regular fa-folder-closed icon"></i>
-        <span class="name">some_root_folder</span>
+      <!-- Users root folders will go here -->
+
+      <div id="upload">
+        <div>
+          <i class="fa-solid fa-upload icon"></i>
+          <span class="name">Upload</span>
+        </div>
+        <small class="description">
+          Drop files or click here to upload them into your current directory.
+        </small>
+        <input type="file" name="file" id="file" style="opacity: 0" multiple />
       </div>
     </div>
 
     <!-- Top bar containing breadcrumbs and options -->
     <div id="topbar">
       <!-- Breadcrumbs -->
-      <div class="breadcrumbs">
-        <div class="hover">
-          <i class="fa-regular fa-folder icon"></i>
-          <span class="name">some_root_folder</span>
-        </div>
-        <div class="spacer">/</div>
-        <div>
-          <span class="name">...</span>
-        </div>
-        <div class="spacer">/</div>
-        <div class="hover">
-          <i class="fa-regular fa-folder icon"></i>
-          <span class="name">another_folder</span>
-        </div>
-        <div class="spacer">/</div>
-        <div class="hover">
-          <i class="fa-regular fa-folder icon"></i>
-          <span class="name">lorem</span>
-        </div>
-      </div>
+      <div class="breadcrumbs"></div>
 
       <!-- Options -->
       <div class="options">
-        <div class="btn">
+        <div class="btn" id="moveback">
           <i class="fa-solid fa-arrow-left"></i>
         </div>
-        <div class="btn">
+        <div class="btn" id="movefwd">
           <i class="fa-solid fa-arrow-right"></i>
         </div>
         <div class="spacer"></div>
-        <div class="btn">
+        <div class="btn" id="moveup">
           <i class="fa-solid fa-arrow-up"></i>
         </div>
+        <div class="spacer"></div>
       </div>
     </div>
 
     <!-- The main section showing files and folders -->
-    <main>
-      <div class="object">
-        <i class="fa-regular fa-file-lines fa-3x"></i>
-        <span class="name">chapters.txt</span>
+    <main></main>
+
+    <!-- The context menu for rightclicking files -->
+    <div id="ctxmenu" style="display: none">
+      <div id="ctxdownload">
+        <i class="fa-solid fa-download icon"></i>
+        <span class="name">Download</span>
       </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
+      <div id="ctxrename">
+        <i class="fa-solid fa-i-cursor icon"></i>
+        <span class="name">Rename</span>
       </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
+      <div id="ctxdelete">
+        <i class="fa-regular fa-trash-can icon"></i>
+        <span class="name">Delete</span>
       </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object">
-        <i class="fa-regular fa-folder fa-3x"></i>
-        <span class="name">Downloads</span>
-      </div>
-      <div class="object add">
-        <i class="fa-solid fa-folder-plus fa-3x"></i>
-        <span class="name">Create folder</span>
-      </div>
-    </main>
+    </div>
+
+    <script type="module" src="/s/js/filepicker.js"></script>
   </body>
 </html>

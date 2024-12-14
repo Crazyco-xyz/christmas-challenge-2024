@@ -1,0 +1,38 @@
+@import url("/s/css/color.css");
+@import url("/s/css/sidebar.css");
+@import url("/s/css/topbar.css");
+
+body {
+  /*
+   * Some of the most common system fonts of
+   * different operating systems
+   */
+  font-family: ui-sans-serif, "Segoe UI", "Roboto", "SF Pro", "Noto", "Ubuntu",
+    sans-serif;
+
+  background-color: var(--color-background);
+  color: var(--color-text-secondary);
+  user-select: none;
+
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: center;
+  margin-left: 248px;
+  margin-top: 50px;
+  width: calc(100vw - 248px);
+}
+
+#overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+
+  background-color: rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

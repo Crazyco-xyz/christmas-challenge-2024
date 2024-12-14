@@ -12,6 +12,7 @@
   padding-right: 10px;
 
   display: flex;
+  flex-wrap: nowrap;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
@@ -22,6 +23,7 @@
  */
 #topbar .breadcrumbs {
   display: flex;
+  flex-wrap: nowrap;
   gap: 1px;
 
   align-items: center;
@@ -69,6 +71,7 @@
  */
 #topbar .options {
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 5px;
 }

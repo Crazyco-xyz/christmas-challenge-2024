@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Your Files</title>
+    <link rel="stylesheet" href="/s/css/main.css" />
+    <link rel="stylesheet" href="/s/css/filepreview.css" />
+    <link rel="stylesheet" href="/s/fontawesome/css/all.css" />
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <div class="spacer"></div>
+
+      <!-- User icon and logout -->
+      <div class="bar bold">
+        <i class="fa-regular fa-user icon"></i>
+        <span class="name">Joa's Files</span>
+        <span class="btn"></span>
+
+        <i class="fa-solid fa-arrow-right-from-bracket btn-icon"></i>
+      </div>
+      <div class="spacer"></div>
+
+      <!-- Search bar -->
+      <div class="bar clickable">
+        <i class="fa-solid fa-magnifying-glass icon"></i>
+        <span class="name">Search</span>
+      </div>
+
+      <!-- Home tab -->
+      <div class="bar clickable">
+        <i class="fa-solid fa-house icon"></i>
+        <span class="name">Home</span>
+      </div>
+      <div class="bar spacer"></div>
+
+      <div class="bar title">Your Files</div>
+
+      <!-- User's folders inside root -->
+      <div class="bar clickable">
+        <i class="fa-regular fa-folder-closed icon"></i>
+        <span class="name">some_root_folder</span>
+      </div>
+    </div>
+
+    <!-- Top bar containing breadcrumbs and options -->
+    <div id="topbar">
+      <!-- Breadcrumbs -->
+      <div class="breadcrumbs">
+        <div class="hover">
+          <i class="fa-regular fa-folder icon"></i>
+          <span class="name">some_root_folder</span>
+        </div>
+        <div class="spacer">/</div>
+        <div>
+          <span class="name">...</span>
+        </div>
+        <div class="spacer">/</div>
+        <div class="hover">
+          <i class="fa-regular fa-folder icon"></i>
+          <span class="name">another_folder</span>
+        </div>
+        <div class="spacer">/</div>
+        <div class="hover">
+          <i class="fa-regular fa-folder icon"></i>
+          <span class="name">lorem</span>
+        </div>
+      </div>
+
+      <!-- Options -->
+      <div class="options">
+        <div class="btn">
+          <i class="fa-solid fa-xmark"></i>
+        </div>
+        <div class="spacer"></div>
+      </div>
+    </div>
+
+    <!-- The main section showing the previewed file -->
+    <main>
+      <div class="title">
+        <i class="fa-regular fa-file-lines fa-4x icon"></i>
+        <h1 class="name">chapters.txt</h1>
+      </div>
+
+      <div class="options">
+        <div>
+          <i class="fa-solid fa-download icon"></i>
+          <span class="name">Download</span>
+        </div>
+        <div>
+          <i class="fa-solid fa-share icon"></i>
+          <span class="name">Share</span>
+        </div>
+      </div>
+
+      <iframe src="/text_preview.html" title="Preview"></iframe>
+    </main>
+  </body>
+</html>

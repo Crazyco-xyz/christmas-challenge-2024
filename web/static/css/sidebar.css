@@ -13,6 +13,7 @@
   border-right: 1px solid var(--color-border);
 
   display: flex;
+  flex-wrap: nowrap;
   flex-direction: column;
   align-items: center;
   justify-content: start;
@@ -38,6 +39,8 @@
   border-radius: 5px;
   cursor: pointer;
   transition: background 0.2s;
+  color: var(--color-text-secondary);
+  text-decoration: none;
 }
 
 .btn-icon:hover {
@@ -55,7 +58,7 @@
 /*
  * Any div inside the sidebar
  */
-#sidebar div {
+#sidebar .bar {
   width: 90%;
   height: 30px;
   background-color: transparent;
@@ -63,6 +66,7 @@
   border-radius: 5px;
 
   display: flex;
+  flex-wrap: nowrap;
   flex-direction: row;
   justify-content: start;
   align-items: center;
@@ -100,4 +104,32 @@
   font-size: 15px;
   height: 30px;
   color: var(--color-text-secondary);
+}
+
+#upload {
+  position: absolute;
+  bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+
+  height: 90px;
+  width: 90%;
+  padding: 5px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+}
+
+#upload:hover {
+  border: 1px solid var(--color-border);
+}
+
+#upload div {
+  display: flex;
+  flex-direction: row;
+}
+
+#upload small {
+  color: var(--color-text-dark);
+  padding-left: 5px;
 }
