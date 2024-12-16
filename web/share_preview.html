@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Your Files</title>
+    <title>Shared File</title>
     <link rel="stylesheet" href="/s/css/main.css" />
     <link rel="stylesheet" href="/s/css/filepreview.css" />
     <link rel="stylesheet" href="/s/fontawesome/css/all.css" />
@@ -15,7 +15,7 @@
       <!-- User icon and logout -->
       <div class="bar bold">
         <i class="fa-regular fa-user icon"></i>
-        <span class="name">File Preview</span>
+        <span class="name">Shared File</span>
         <span class="btn"></span>
 
         <i class="fa-solid fa-arrow-right-from-bracket btn-icon"></i>
@@ -27,17 +27,14 @@
         <i class="fa-solid fa-house icon"></i>
         <span class="name">Home</span>
       </div>
-      <div class="bar spacer"></div>
-
-      <div class="bar title">Your Folders</div>
-
-      <!-- User's folders inside root will go here -->
     </div>
 
     <!-- Top bar containing breadcrumbs and options -->
     <div id="topbar">
       <!-- Breadcrumbs -->
-      <div class="breadcrumbs"></div>
+      <div class="breadcrumbs">
+        <div class="spacer">/</div>
+      </div>
 
       <!-- Options -->
       <div class="options">
@@ -60,14 +57,8 @@
           <i class="fa-solid fa-download icon"></i>
           <span class="name">Download</span>
         </div>
-        <div id="share">
-          <i class="fa-solid fa-share icon"></i>
-          <span class="name">Share</span>
-        </div>
       </div>
-
-      <iframe src="" title="Preview" id="preview"></iframe>
     </main>
-    <script type="module" src="/s/js/filepreview.js"></script>
+    <script type="module" src="/s/js/sharepreview.js"></script>
   </body>
 </html>

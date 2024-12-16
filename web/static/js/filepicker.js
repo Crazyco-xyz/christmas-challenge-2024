@@ -2,16 +2,30 @@ import { API } from "./api.js";
 import { initContext } from "./ctxmenu.js";
 import { initUpload } from "./upload.js";
 import Abortable from "./abort.js";
+import { showBreadcrumbs } from "./breadcrumbs.js";
 
-const api = new API(refreshFiles, refreshFiles),
+const api = new API(onLoad),
   main = document.getElementsByTagName("main")[0],
-  topbar = document.getElementById("topbar"),
-  breadcrumbs = topbar.getElementsByClassName("breadcrumbs")[0],
   sidebar = document.getElementById("sidebar"),
   ctxdownload = document.getElementById("ctxdownload"),
   moveUp = document.getElementById("moveup"),
   moveBack = document.getElementById("moveback"),
   moveFwd = document.getElementById("movefwd");
+
+api.trackUrl = true;
+
+function onLoad() {
+  const path = location.href.split("/"),
+    dir = path[path.length - 1];
+
+  if (!dir.startsWith("~") && dir.length !== 0) {
+    const dirPath = api.pathOf(dir);
+    dirPath.push(dir);
+    api.moveStatic(dirPath);
+  }
+
+  refreshFiles();
+}
 
 function refreshFiles() {
   let currentDir = api.currentDir();
@@ -133,83 +147,8 @@ function refreshFiles() {
   }
   addAddFolder();
 
-  showBreadcrumbs();
+  showBreadcrumbs(api, (id) => api.moveStatic(id));
   showRootDirs();
-}
-
-function showBreadcrumbs() {
-  const clearBreadcrumbs = () => {
-      while (breadcrumbs.firstChild) {
-        breadcrumbs.removeChild(breadcrumbs.firstChild);
-      }
-    },
-    makeSpacer = () => {
-      const spacer = document.createElement("div");
-      spacer.classList.add("spacer");
-      spacer.innerText = "/";
-
-      return spacer;
-    },
-    makeCrumb = (nameStr, idPath) => {
-      const crumb = document.createElement("div"),
-        ico = document.createElement("i"),
-        name = document.createElement("span");
-
-      crumb.classList.add("hover");
-      ico.classList.add("fa-regular", "fa-folder", "icon");
-      name.classList.add("name");
-
-      name.innerText = nameStr;
-
-      crumb.addEventListener("click", () => {
-        api.moveStatic(idPath);
-      });
-
-      crumb.appendChild(ico);
-      crumb.appendChild(name);
-
-      return crumb;
-    },
-    makeEllipses = () => {
-      const ellipses = document.createElement("div"),
-        name = document.createElement("span");
-
-      name.classList.add("name");
-      name.innerText = "...";
-
-      ellipses.appendChild(name);
-
-      return ellipses;
-    },
-    dirParts = api.currentDirPath(),
-    idPath = [];
-
-  clearBreadcrumbs();
-
-  if (dirParts.length == 0) {
-    breadcrumbs.appendChild(makeSpacer());
-
-    return;
-  } else if (dirParts.length <= 3) {
-    for (const part of dirParts) {
-      idPath.push(part.id);
-      breadcrumbs.appendChild(makeSpacer());
-      breadcrumbs.appendChild(makeCrumb(part.name, idPath.slice()));
-    }
-
-    return;
-  }
-
-  breadcrumbs.appendChild(makeSpacer());
-  breadcrumbs.append(makeCrumb(dirParts[0].name, [dirParts[0].id]));
-  breadcrumbs.appendChild(makeSpacer());
-  breadcrumbs.appendChild(makeEllipses());
-
-  for (let i = dirParts.length - 2; i < dirParts.length; i++) {
-    idPath.push(dirParts[i].id);
-    breadcrumbs.appendChild(makeSpacer());
-    breadcrumbs.appendChild(makeCrumb(dirParts[i].name, idPath.slice()));
-  }
 }
 
 function showRootDirs() {

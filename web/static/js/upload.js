@@ -55,7 +55,10 @@ function initUpload() {
   );
 
   // When a file gets dropped
-  upload.addEventListener("drop", (e) => onUpload(e.dataTransfer.files));
+  upload.addEventListener("drop", (e) => {
+    e.stopPropagation();
+    onUpload(e.dataTransfer.files);
+  });
 }
 
 export { initUpload };

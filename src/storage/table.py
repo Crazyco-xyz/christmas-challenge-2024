@@ -119,17 +119,3 @@ class Table(abc.ABC):
         query = ["DELETE FROM", self.name(), "WHERE", where]
 
         self.execute_commit(" ".join(query), args)(None)
-
-
-class ShareTable(Table):
-    def name(self) -> str:
-        return "share"
-
-    def columns(self) -> list[str]:
-        return [
-            "share_id TEXT PRIMARY KEY",
-            "creator_id TEXT NOT NULL",
-            "receiver_id TEXT",
-            "password TEXT",
-            "expiration REAL NOT NULL",
-        ]

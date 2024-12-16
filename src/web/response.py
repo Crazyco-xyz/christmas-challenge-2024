@@ -4,6 +4,7 @@ import socket
 from typing import Any, Optional
 
 from proj_types.case_insensitive_dict import CaseInsensitiveDict
+from web.socket_data import DataSender
 
 
 class WebResponse(abc.ABC):
@@ -18,7 +19,7 @@ class WebResponse(abc.ABC):
         self._code: int = 200
         self._msg: str = "OK"
         self._headers: dict[str, str] = {}
-        self._body: Optional[bytes] = None
+        self._body: Optional[bytes | DataSender] = None
 
     @property
     def code(self) -> int:
@@ -66,7 +67,7 @@ class WebResponse(abc.ABC):
         return self._headers
 
     @property
-    def body(self) -> Optional[bytes]:
+    def body(self) -> Optional[bytes | DataSender]:
         """
         Returns:
             Optional[bytes]: The body for the response
@@ -75,7 +76,7 @@ class WebResponse(abc.ABC):
         return self._body
 
     @body.setter
-    def body(self, val: bytes) -> None:
+    def body(self, val: bytes | DataSender) -> None:
         """
         Args:
             val (bytes): The new body to be sent

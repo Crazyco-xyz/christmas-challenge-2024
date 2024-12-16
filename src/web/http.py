@@ -11,7 +11,7 @@ from proj_types.webmethod import WebMethod
 from web.encoding import Encoding
 from web.request import WebRequest
 from web.response import WebResponse
-from web.socket_data import DataReceiver
+from web.socket_data import DataReceiver, DataSender
 
 
 class HttpRequest(WebRequest):
@@ -151,6 +151,9 @@ class HttpResponse(WebResponse):
     def _compress_body(self) -> None:
         """Tries to compress the body using the provided encodings"""
 
+        if isinstance(self.body, DataSender):
+            return
+
         # Check if there are supported encodings and a body
         if "Accept-Encoding" not in self._recv_headers or not self.body:
             return
@@ -200,7 +203,10 @@ class HttpResponse(WebResponse):
         if self.body is None:
             return
 
-        self._socket.sendall(self.body)
+        if isinstance(self.body, DataSender):
+            self.body.send_to(self._socket)
+        else:
+            self._socket.sendall(self.body)
 
     def _default_headers(self) -> dict[str, str]:
         return {

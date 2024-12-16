@@ -7,6 +7,7 @@ class API {
   dir = [];
   dirHistoryBack = [];
   dirHistoryFwd = [];
+  trackUrl = false;
 
   constructor(initCallback) {
     this.#_listIcons(() => {
@@ -87,7 +88,7 @@ class API {
    * @param {*} [files = this.files] The parent element to start off from
    */
   #_listNames(files = this.files) {
-    this.names = {};
+    if (files === this.files) this.names = {};
 
     for (const id of Object.keys(files)) {
       if (typeof files[id] === "object") {
@@ -98,8 +99,6 @@ class API {
 
       this.names[id] = files[id];
     }
-
-    console.log(this.names);
   }
 
   /**
@@ -119,12 +118,30 @@ class API {
   }
 
   /**
+   * Keeps track of the current directory using the URL.
+   * Used for when the user presses reload
+   */
+  #_onDirChange() {
+    if (!this.trackUrl) return;
+
+    const path = location.href.split("/"),
+      name = path[path.length - 1].startsWith("~")
+        ? path[path.length - 1]
+        : path[path.length - 2],
+      dirId = this.dir[this.dir.length - 1];
+
+    history.replaceState(null, "", `/${name}/${dirId || ""}`);
+  }
+
+  /**
    * Moves into the specified directory
    * @param {string} dirId The ID of the dir
    */
   moveInto(dirId) {
     this.dirHistoryBack.push(this.dir.slice());
     this.dir.push(dirId);
+
+    this.#_onDirChange();
   }
 
   /**
@@ -135,6 +152,8 @@ class API {
 
     this.dirHistoryBack.push(this.dir.slice());
     this.dir.pop();
+
+    this.#_onDirChange();
   }
 
   /**
@@ -146,6 +165,8 @@ class API {
     this.dirHistoryFwd.push(this.dir.slice());
 
     this.dir = this.dirHistoryBack.pop();
+
+    this.#_onDirChange();
   }
 
   /**
@@ -157,6 +178,8 @@ class API {
     this.dirHistoryBack.push(this.dir.slice());
 
     this.dir = this.dirHistoryFwd.pop();
+
+    this.#_onDirChange();
   }
 
   /**
@@ -167,6 +190,8 @@ class API {
     this.dirHistoryBack.push(this.dir.slice());
 
     this.dir = parts;
+
+    this.#_onDirChange();
   }
 
   /**
@@ -365,6 +390,44 @@ class API {
     }
 
     return "fa-file";
+  }
+
+  /**
+   * Searches for the path of the file
+   * @param {string} fileId The ID of the file to search for
+   * @param {{}} searchRoot The root to search from
+   * @param {[]} rootId The IDs of the current path
+   * @returns The ID path of the file or null
+   */
+  pathOf(fileId, searchRoot = this.files, rootId = []) {
+    for (const id of Object.keys(searchRoot)) {
+      if (id == fileId) return rootId;
+
+      if (typeof searchRoot[id] === "object") {
+        const newRootId = rootId.slice();
+        newRootId.push(id);
+        const root = this.pathOf(fileId, searchRoot[id], newRootId);
+
+        if (root !== null) {
+          return root;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Creates a share from the provided file id
+   * @param {string} fileId The ID of the file to share
+   * @param {string} password The password or null
+   * @param {Function} onSuccess The success callback
+   */
+  makeShare(fileId, password, onSuccess) {
+    const data = { file_id: fileId };
+    if (password.length > 0) data.password = password;
+
+    this.#_request("/share", data, (body) => onSuccess(body.share_id));
   }
 }
 

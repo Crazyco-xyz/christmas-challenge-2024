@@ -46,3 +46,6 @@ class StaticHandler(WebHandler):
         response.headers["Content-Type"] = (
             mimetypes.guess_type(path)[0] or "application/octet-stream"
         )
+
+        # Tell the browser static pages can be cached
+        response.headers["Cache-Control"] = "public, max-age=604800"

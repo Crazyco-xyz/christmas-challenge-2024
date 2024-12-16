@@ -59,6 +59,9 @@ class SessionStorage:
 
         return session
 
+    def remove_session(self, session: "Session") -> None:
+        del self._sessions[session.session_id]
+
 
 class Session:
     def __init__(self, ip: str, userid: str, expires_after: int = 172800) -> None:

@@ -10,15 +10,66 @@
     <div id="options">
       <div class="save">
         <i class="fa-regular fa-floppy-disk icon"></i>
-        <span class="name">Save</span>
+        <span class="name" id="save">Save</span>
       </div>
     </div>
     <ol
       contenteditable
-      oninput="if (this.innerHTML == '') this.innerHTML = '<li><br></li>'"
-    >
-      <li>Hello there!</li>
-      <li>How are you?</li>
-    </ol>
+      oninput="if (this.innerHTML == '') this.innerHTML = '<li><br></li>'; unsaved = true;"
+      id="text"
+    ></ol>
+
+    <script>
+      function escapeHtml(unsafe) {
+        return unsafe
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      const path = location.href.split("/"),
+        fileId = path[path.length - 1];
+      let unsaved = false;
+
+      fetch(`/a/v1/${fileId}`)
+        .then((response) => {
+          if (!response.ok) throw new Error("Could not load file");
+          return response.text();
+        })
+        .then((text) => {
+          const lines = text.split("\n"),
+            textArea = document.getElementById("text");
+
+          for (const line of lines) {
+            const li = document.createElement("li");
+            li.innerHTML = escapeHtml(line.replace("\r", ""))
+              .replace("\t", "    ")
+              .replace(/\s/g, "&nbsp;");
+            textArea.appendChild(li);
+          }
+        });
+
+      document.getElementById("save").addEventListener("click", saveData);
+      function saveData() {
+        const textArea = document.getElementById("text");
+        let text = [];
+
+        for (const c of textArea.children) {
+          text.push(c.innerText);
+        }
+
+        fetch(`/a/v1/${fileId}`, {
+          method: "POST",
+          body: text.join("\n"),
+        }).then(() => (unsaved = false));
+      }
+
+      window.onbeforeunload = () => {
+        if (unsaved)
+          return "You have unsaved changes on this page. Do you want to leave this page and discard your changes or stay on this page?";
+      };
+    </script>
   </body>
 </html>

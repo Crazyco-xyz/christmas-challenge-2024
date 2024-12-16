@@ -1,4 +1,5 @@
-from io import BufferedWriter
+from io import BufferedReader, BufferedWriter
+import os
 import socket
 
 from log import LOG
@@ -21,3 +22,24 @@ class DataReceiver:
             # Write the chunk to file
             filehandle.write(chunk)
             filehandle.flush()
+
+        filehandle.close()
+
+
+class DataSender:
+    CHUNK_LENGTH = 4096
+
+    def __init__(self, file_path: str) -> None:
+        self._file_path = file_path
+        self._file = open(file_path, "rb")
+
+    def send_to(self, sock: socket.socket) -> None:
+        while chunk := self._file.read(self.CHUNK_LENGTH):
+            sent = 0
+            while sent < len(chunk):
+                sent += sock.send(chunk[sent:])
+
+        self._file.close()
+
+    def __len__(self) -> int:
+        return os.path.getsize(self._file_path)

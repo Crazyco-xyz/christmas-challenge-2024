@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Text Editor</title>
+    <link rel="stylesheet" href="/s/fontawesome/css/all.css" />
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      img {
+        max-width: 100%;
+        max-height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <img src="" alt="" id="img" />
+
+    <script>
+      const path = location.href.split("/"),
+        fileId = path[path.length - 1];
+
+      document.getElementById("img").src = `/a/v1/${fileId}`;
+    </script>
+  </body>
+</html>

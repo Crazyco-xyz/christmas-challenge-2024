@@ -1,8 +1,12 @@
+import hashlib
 import json
 import mimetypes
 import os
 import re
 from typing import Any, Optional
+
+from httpx import RequestNotRead
+from torch import res
 
 import constants
 from log import LOG
@@ -11,7 +15,7 @@ from storage.datadb import DataDB
 from web.handler import WebHandler
 from web.response import WebResponse
 from web.session import Session, SessionStorage
-from web.socket_data import DataReceiver
+from web.socket_data import DataReceiver, DataSender
 
 
 class APIHandler(WebHandler):
@@ -54,42 +58,56 @@ class APIHandler(WebHandler):
         path = self._request.path[len(self.API_PREFIX) :].split("/")
         body: dict[str, Any] = self._get_body()
 
-        if path[0] == "register":
-            self._register(body, response)
+        match path[0]:
+            case "register":
+                self._register(body, response)
 
-        elif path[0] == "login":
-            self._login(body, response)
+            case "login":
+                self._login(body, response)
 
-        elif path[0] == "user":
-            self._user(response)
+            case "user":
+                self._user(response)
 
-        elif path[0] == "upload":
-            self._upload(path, self._request.body, response)
+            case "upload":
+                self._upload(path, self._request.body, response)
 
-        elif path[0] == "rename":
-            self._rename(body, response)
+            case "rename":
+                self._rename(body, response)
 
-        elif path[0] == "move":
-            self._move(body, response)
+            case "move":
+                self._move(body, response)
 
-        elif path[0] == "delete":
-            self._delete(body, response)
+            case "delete":
+                self._delete(body, response)
 
-        elif path[0] == "folder":
-            self._folder(body, response)
+            case "folder":
+                self._folder(body, response)
 
-        elif path[0] == "listall":
-            self._list_all(response)
+            case "listall":
+                self._list_all(response)
 
-        elif DataDB().files().check_file_id(path[0]):
-            if self._request.method == WebMethod.GET:
+            case "preview":
+                self._preview(path, response)
 
-                # User requests contents of a file
-                self._download(path, response)
-            elif self._request.method == WebMethod.POST:
+            case "share":
+                self._share(body, response)
 
-                # User overwrites a file
-                self._update(path, self._request.body, response)
+            case "sharedetails":
+                self._share_details(body, response)
+
+            case _:
+                if DataDB().files().check_file_id(path[0]):
+                    if self._request.method == WebMethod.GET:
+
+                        # User requests contents of a file
+                        self._download(path, response)
+                    elif self._request.method == WebMethod.POST:
+
+                        # User overwrites a file
+                        self._update(path, self._request.body, response)
+
+                elif DataDB().shares().check_share_id(path[0]):
+                    self._download_share(path, body, response)
 
     def _check_email(self, email: str) -> bool:
         """Checks the provided Email address
@@ -164,7 +182,9 @@ class APIHandler(WebHandler):
             return
 
         # Register user using data
-        userdb.register(userid, email, password, False)
+        userdb.register(
+            userid, email, hashlib.sha512(password.encode()).hexdigest(), False
+        )
 
         response.json_body({"location": "/login"})
 
@@ -190,7 +210,9 @@ class APIHandler(WebHandler):
             return
 
         # Try to log in
-        session = SessionStorage().create_session(self._request.ip, userid, password)
+        session = SessionStorage().create_session(
+            self._request.ip, userid, hashlib.sha512(password.encode()).hexdigest()
+        )
 
         if session is None:
             self._response_invalid_data(
@@ -349,8 +371,7 @@ class APIHandler(WebHandler):
             return
 
         # Download file
-        with open(os.path.join(constants.FILES, file_id), "rb") as rf:
-            response.body = rf.read()
+        response.body = DataSender(os.path.join(constants.FILES, file_id))
 
         # Guess MIME type for browser (defaults to `application/octet-stream`)
         response.headers["Content-Type"] = (
@@ -492,3 +513,162 @@ class APIHandler(WebHandler):
             return
 
         response.json_body(DataDB().files().list_all(session))
+
+    def _send_file(self, web_file: str, response: WebResponse) -> None:
+        """Sends a file inside the /web/ directory
+
+        Args:
+            web_file (str): The file to send
+            response (WebResponse): The response to send to
+        """
+
+        path = os.path.join(constants.WEB, web_file)
+
+        with open(path, "rb") as rf:
+            response.body = rf.read()
+
+        response.headers["Content-Type"] = (
+            mimetypes.guess_type(web_file)[0] or "application/octet-stream"
+        )
+
+    def _preview(self, path: list[str], response: WebResponse) -> None:
+        """Searches for the preview type a file needs
+
+        Args:
+            path (list[str]): The ID of the file inside the path
+            response (WebResponse): The response to this request
+        """
+
+        # Check if the user is logged in
+        if not (session := self._check_login(response)):
+            return
+
+        file_db = DataDB().files()
+        file_id = path[1] if len(path) > 1 else None
+
+        # Check if file id was sent
+        if file_id is None:
+            self._response_invalid_data(response, "No file ID specified!")
+            return
+
+        # Check if user has access to file
+        if not file_db.can_download(session, file_id):
+            self._response_invalid_data(response, "You can't do that")
+            return
+
+        # Get MIME type of file
+        mime = mimetypes.guess_type(file_db.get_name(file_id))[0]
+
+        if mime is None:
+            self._send_file("no_preview.html", response)
+
+        elif mime.startswith("text/"):
+            self._send_file("text_preview.html", response)
+
+        elif mime.startswith("image/"):
+            self._send_file("img_preview.html", response)
+
+        elif mime.startswith("video/"):
+            self._send_file("vid_preview.html", response)
+
+        else:
+            self._send_file("no_preview.html", response)
+
+    def _share(self, body: dict[str, Any], response: WebResponse) -> None:
+        """Creates a share link for the specified file
+
+        Args:
+            body (dict[str, Any]): The body containing the file and password
+            response (WebResponse): The response to this request
+        """
+
+        # Check if the user is logged in
+        if not (session := self._check_login(response)):
+            return
+
+        data_db = DataDB()
+        file_db = data_db.files()
+        share_db = data_db.shares()
+
+        file_id = body.get("file_id", None)
+        password = body.get("password", None)
+
+        if file_id is None:
+            self._response_invalid_data(response, "You didn't provide a file id.")
+            return
+
+        if not file_db.can_download(session, file_id):
+            self._response_invalid_data(response, "You cannot do that!")
+            return
+
+        share_id = share_db.create_share(
+            session,
+            file_id,
+            (
+                hashlib.sha512(password.encode()).hexdigest()
+                if password is not None
+                else None
+            ),
+        )
+
+        response.json_body({"share_id": share_id})
+
+    def _share_details(self, body: dict[str, Any], response: WebResponse) -> None:
+        data_db = DataDB()
+        share_db = data_db.shares()
+        file_db = data_db.files()
+
+        share_id = body.get("share_id", None)
+
+        file_id = share_db.get_file_id(share_id)
+
+        response.json_body(
+            {
+                "name": file_db.get_name(file_id),
+                "password": share_db.has_password(share_id),
+            }
+        )
+
+    def _download_share(
+        self, path: list[str], body: dict[str, Any], response: WebResponse
+    ) -> None:
+        """Downloads the file contained in a share
+
+        Args:
+            path (list[str]): The path containing the share ID
+            body (dict[str, Any]): The body containing the potential password
+            response (WebResponse): The response to this request
+        """
+
+        data_db = DataDB()
+        share_db = data_db.shares()
+        file_db = data_db.files()
+
+        share_id = path[0]
+        password = body.get("password", None)
+        do_download = path[1] == "download" if len(path) > 1 else False
+
+        if not share_db.can_download(
+            share_id,
+            (
+                hashlib.sha512(password.encode()).hexdigest()
+                if password is not None
+                else None
+            ),
+        ):
+            self._response_invalid_data(response, "You cannot do that!")
+            return
+
+        file_id = share_db.get_file_id(share_id)
+
+        response.body = DataSender(os.path.join(constants.FILES, file_id))
+
+        response.headers["Content-Type"] = (
+            mimetypes.guess_type(file_db.get_name(file_id))[0]
+            or "application/octet-stream"
+        )
+
+        if do_download:
+            response.headers["Content-Disposition"] = (
+                f'attachment; filename="{file_db.get_name(file_id)}"'
+            )

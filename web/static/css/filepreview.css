@@ -20,15 +20,15 @@ main .title {
 }
 
 main .title .name {
-  font-variant: small-caps;
+  color: var(--color-text);
+  font-size: 32px;
+  font-weight: 900;
+  height: 32px;
 }
 
 main .title .icon {
   transform: translateX(10px);
-}
-
-main h1 {
-  color: var(--color-text);
+  height: 60px;
 }
 
 main iframe {
@@ -50,7 +50,9 @@ main .options div {
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: center;
-  padding: 5px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
 main .options div:hover {
@@ -58,10 +60,85 @@ main .options div:hover {
 }
 
 main .options .icon {
-  margin-left: 7px;
   margin-right: 7px;
 }
 
 main .options .name {
   line-height: 20px;
+}
+
+#overlay .share {
+  position: absolute;
+  width: 350px;
+  height: 350px;
+  background-color: var(--color-sidebar);
+  border-radius: 5px;
+  padding: 40px;
+  border: 1px solid var(--color-border);
+
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+#overlay .closeico {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  padding: 5px 7px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#overlay .closeico:hover {
+  background-color: var(--color-sidebar-hover);
+}
+
+#overlay .title {
+  color: var(--color-text);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+#overlay input {
+  background: none;
+  width: 200px;
+  border: 1px solid var(--color-border);
+  padding: 5px;
+  color: var(--color-text);
+  outline: none;
+  border-radius: 5px;
+
+  font-family: monospace;
+}
+
+#overlay button {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 16px;
+  padding: 10px;
+  width: max-content;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#overlay button:hover {
+  background-color: var(--color-sidebar-hover);
+}
+
+#overlay .icon {
+  padding-right: 7px;
+}
+
+#linkout {
+  max-width: 100%;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  padding: 20px;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  cursor: text;
+  user-select: all;
 }

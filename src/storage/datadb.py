@@ -6,7 +6,8 @@ import constants
 from proj_types.promise import SQLPromise
 from proj_types.singleton import singleton
 from storage.files_table import FilesTable
-from storage.table import Table, ShareTable
+from storage.share_table import ShareTable
+from storage.table import Table
 from storage.users_table import UsersTable
 
 
