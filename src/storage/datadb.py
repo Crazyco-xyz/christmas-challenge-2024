@@ -1,7 +1,7 @@
 import os
 import sqlite3
 import threading
-from typing import Any, Type
+from typing import Type
 import constants
 from proj_types.promise import SQLPromise
 from proj_types.singleton import singleton

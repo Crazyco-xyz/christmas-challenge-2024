@@ -1,4 +1,3 @@
-import hashlib
 from typing import Optional
 from uuid import uuid4
 from storage.table import Table

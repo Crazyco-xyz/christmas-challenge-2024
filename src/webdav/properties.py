@@ -5,8 +5,6 @@ import mimetypes
 import os
 from typing import Optional
 
-from numpy import mat
-
 import constants
 from proj_types.file_type import FileType
 from storage.datadb import DataDB

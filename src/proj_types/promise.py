@@ -1,4 +1,3 @@
-from ast import TypeVar
 import sqlite3
 import threading
 from typing import Callable, Optional

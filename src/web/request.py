@@ -1,6 +1,6 @@
 import abc
 import socket
-from typing import Optional, Type
+from typing import Optional
 
 from proj_types.case_insensitive_dict import CaseInsensitiveDict
 from proj_types.webmethod import WebMethod

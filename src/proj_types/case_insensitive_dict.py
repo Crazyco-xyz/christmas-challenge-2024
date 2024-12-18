@@ -1,6 +1,4 @@
-from typing import Any, Optional, TypeVar
-
-_T = TypeVar("_T")
+from typing import Optional
 
 
 class CaseInsensitiveDict[_T]:

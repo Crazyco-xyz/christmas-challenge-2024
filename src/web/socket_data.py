@@ -1,9 +1,7 @@
-from io import BufferedReader, BufferedWriter
+from io import BufferedWriter
 import io
 import os
 import socket
-
-from log import LOG
 
 
 class DataReceiver:

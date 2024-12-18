@@ -147,7 +147,6 @@ class XmlReader:
         match self._prev():
             case "/":
                 if not self._match(">"):
-                    print(self._text[self._pos :])
                     raise ProtocolError("No > after / in self closing tag")
             case ">":
                 self._read_children(child)

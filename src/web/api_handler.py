@@ -5,9 +5,6 @@ import os
 import re
 from typing import Any, Optional
 
-from httpx import RequestNotRead
-from torch import res
-
 import constants
 from log import LOG
 from proj_types.webmethod import WebMethod

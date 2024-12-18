@@ -1,11 +1,9 @@
 import base64
 import hashlib
-import io
 import mimetypes
 import os
 from typing import Optional
 
-from regex import E
 import constants
 from log import LOG
 from proj_types.proto_error import ProtocolError
@@ -316,6 +314,9 @@ class WebDavHandler(WebHandler):
         properties = []
 
         if has_data:
+            if xml.children[0].name == "prop":
+                xml = xml.children[0]
+
             for c in xml.children:
                 if c.name == "allprop":
                     properties.extend(DavProperties.allprop())
@@ -339,6 +340,8 @@ class WebDavHandler(WebHandler):
             xml_resp,
             self._get_depth(),
         )
+
+        print(XmlFragment.stringify(xml_resp))
 
         # Send the multistatus response
         response.code = 207

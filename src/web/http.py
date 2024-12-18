@@ -1,10 +1,8 @@
-import gzip
 import socket
 
 import time
 import urllib.parse
 import constants
-from log import LOG
 from proj_types.case_insensitive_dict import CaseInsensitiveDict
 from proj_types.proto_error import ProtocolError
 from proj_types.webmethod import WebMethod

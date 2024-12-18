@@ -1,7 +1,6 @@
 import os
 from uuid import uuid4
 import constants
-from proj_types import file_type
 from proj_types.file_type import FileType
 from storage.table import Table
 from web.session import Session
