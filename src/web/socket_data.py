@@ -1,4 +1,5 @@
 from io import BufferedReader, BufferedWriter
+import io
 import os
 import socket
 
@@ -13,7 +14,7 @@ class DataReceiver:
         self._recv_length: int = 0
         self._recv_length = recv_length
 
-    def receive_into(self, filehandle: BufferedWriter) -> None:
+    def receive_into(self, filehandle: BufferedWriter | io.BytesIO) -> None:
         while self._recv_length > 0:
             # Read the data chunk from the socket
             chunk = self._sock.recv(min(self.CHUNK_LENGTH, self._recv_length))

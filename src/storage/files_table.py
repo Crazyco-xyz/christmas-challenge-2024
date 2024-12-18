@@ -7,6 +7,9 @@ from storage.table import Table
 from web.session import Session
 
 
+type FileDict = dict[str, str | FileDict]
+
+
 class FilesTable(Table):
     def name(self) -> str:
         return "files"
@@ -49,6 +52,22 @@ class FilesTable(Table):
         )
 
         return len(folders) > 0
+
+    def is_file(self, file_id: str) -> bool:
+        """Checks whether the entry at file_id is a file
+
+        Args:
+            file_id (str): The file ID to search for
+
+        Returns:
+            bool: Whether this ID is a file
+        """
+
+        files = self.select(
+            "*", "file_id = ? and file_type = ?", (file_id, FileType.FILE.value)
+        )
+
+        return len(files) > 0
 
     def _make_file_id(self) -> str:
         """Creates a new file id
@@ -204,7 +223,7 @@ class FilesTable(Table):
 
         return len(files) == 0
 
-    def list_all(self, user: Session, root: str = "") -> dict[str, str | dict]:
+    def list_all(self, user: Session, root: str = "") -> FileDict:
         """Lists all files and directories inside the root directory
 
         Args:
@@ -233,3 +252,8 @@ class FilesTable(Table):
                 file_dict[file_id] = file_name
 
         return file_dict
+
+    def file_type(self, file_id: str) -> FileType:
+        files = self.select("file_type", "file_id = ?", (file_id,))
+
+        return FileType(files[0][0])

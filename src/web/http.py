@@ -81,7 +81,8 @@ class HttpRequest(WebRequest):
             # Split header into key and value
             header = l.split(": ", 1)
             if len(header) != 2:
-                raise ProtocolError("The header must have a key and value!")
+                self._headers[header[0]] = ""
+                continue
 
             # Store header into CaseInsensitiveDict
             self._headers[header[0]] = header[1]
