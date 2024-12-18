@@ -9,6 +9,7 @@ from typing import Type
 import constants
 from log import LOG
 from proj_types.proto_error import ProtocolError
+from proj_types.webmethod import WebMethod
 from web.handler import WebHandler
 from web.request import WebRequest
 
@@ -143,10 +144,11 @@ class WebServer:
 
                 # Send the response modified by the request handler and return
                 LOG.info(
-                    "%s: %d [%s] for %s by %s",
+                    "%s: %d [%s] for %s: %s by %s",
                     handler.__class__.__name__,
                     response.code,
                     response.msg,
+                    (request.method or WebMethod.GET).value,
                     request.path,
                     addr[0],
                 )

@@ -14,3 +14,6 @@ class WebMethod(Enum):
     COPY = "COPY"
     PROPPATCH = "PROPPATCH"
     MOVE = "MOVE"
+
+    _LOCK = "LOCK"
+    _UNLOCK = "UNLOCK"

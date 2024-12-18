@@ -1,3 +1,4 @@
+import os
 import constants
 from log import LOG
 from web.api_handler import APIHandler
@@ -13,6 +14,9 @@ from webdav.webdav_handler import WebDavHandler
 if __name__ != "__main__":
     LOG.warning("This file should not be imported! Try executing it directly.")
     exit(1)
+
+# Create the files dir, because it wont get cloned using GIT
+os.makedirs(constants.FILES, exist_ok=True)
 
 
 # The stack of handlers to use

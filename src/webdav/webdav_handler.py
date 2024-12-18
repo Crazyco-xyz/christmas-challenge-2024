@@ -7,6 +7,7 @@ from typing import Optional
 
 from regex import E
 import constants
+from log import LOG
 from proj_types.proto_error import ProtocolError
 from proj_types.webmethod import WebMethod
 from storage.datadb import DataDB
@@ -25,7 +26,7 @@ class WebDavHandler(WebHandler):
         if self._request.method is None:
             return False
 
-        return self._request.method in [
+        if self._request.method in [
             WebMethod.PROPFIND,
             WebMethod.MKCOL,
             WebMethod.DELETE,
@@ -33,8 +34,18 @@ class WebDavHandler(WebHandler):
             WebMethod.COPY,
             WebMethod.PROPPATCH,
             WebMethod.MOVE,
-            WebMethod.GET,
-        ]
+            WebMethod._LOCK,
+            WebMethod._UNLOCK,
+        ]:
+            return True
+
+        if (
+            self._request.method == WebMethod.GET
+            and len(self._request.headers.get("Authorization", "")) > 0
+        ):
+            return True
+
+        return False
 
     def _request_auth(self, response: WebResponse) -> None:
         """Sends a response requesting authentication
@@ -100,7 +111,11 @@ class WebDavHandler(WebHandler):
             return None
 
         # Check if the body is XML
-        if not self._request.headers.get("Content-Type", "").endswith("/xml"):
+        if (
+            not self._request.headers.get("Content-Type", "")
+            .split(";", 1)[0]
+            .endswith("/xml")
+        ):
 
             # If we are getting a PUT request different bodies are ok
             if self._request.method == WebMethod.PUT:
@@ -159,10 +174,35 @@ class WebDavHandler(WebHandler):
                 case WebMethod.GET:
                     self._get(path, session, response)
 
-        except ProtocolError:
+                case _:
+                    self._method_not_supported(response)
+
+        except ProtocolError as e:
+            LOG.warning("Protocol error: %s", e.desc)
             response.code = 400
             response.msg = "Protocol Error"
             return
+
+    def _method_not_supported(self, response: WebResponse) -> None:
+        response.code = 405
+        response.msg = "Method Not Allowed"
+
+        response.headers["Allow"] = ", ".join(
+            [
+                e.value
+                for n, e in WebMethod._member_map_.items()
+                if not n.startswith("_")
+            ]
+        )
+        response.headers["DAV"] = "1, 2"
+
+    def _check_not_root(self, path: list[str], response: WebResponse) -> bool:
+        if len(path) != 0:
+            return False
+
+        response.code = 403
+        response.msg = "Forbidden"
+        return True
 
     def _folder_by_path(
         self, session: Session, path: list[str], response: WebResponse
@@ -266,8 +306,7 @@ class WebDavHandler(WebHandler):
         """
 
         # Check if we have a PROPFIND XML body
-        if xml.name != "propfind":
-            raise ProtocolError("PROPFIND request without DAV:propfind xml")
+        has_data = xml.name == "propfind"
 
         # Get the current directory
         if (current_dir := self._folder_by_path(session, path, response)) is None:
@@ -275,13 +314,17 @@ class WebDavHandler(WebHandler):
 
         # List all properties requested by the client
         properties = []
-        for c in xml.children:
-            if c.name == "allprop":
-                properties.extend(DavProperties.allprop())
-            else:
-                p = DavProperties.get_prop(c.name)
-                if p is not None:
-                    properties.append(p)
+
+        if has_data:
+            for c in xml.children:
+                if c.name == "allprop":
+                    properties.extend(DavProperties.allprop())
+                else:
+                    p = DavProperties.get_prop(c.name)
+                    if p is not None:
+                        properties.append(p)
+        else:
+            properties.extend(DavProperties.allprop())
 
         # Create the multistatus response fragment
         xml_resp = XmlFragment("multistatus", "D")
@@ -303,11 +346,13 @@ class WebDavHandler(WebHandler):
         response.body = XmlFragment.stringify(xml_resp).encode()
         response.headers["Content-Type"] = "application/xml"
 
-    def _list_properies(self, file_id: str, properties: list[DavProp]) -> XmlFragment:
+    def _list_properies(
+        self, file_id: Optional[str], properties: list[DavProp]
+    ) -> XmlFragment:
         """Lists all requested properties
 
         Args:
-            file_id (str): The file/folder to list properties on
+            file_id (str): The file/folder to list properties on or None for root
             properties (list[DavProp]): The properties requested by the client
 
         Returns:
@@ -318,7 +363,11 @@ class WebDavHandler(WebHandler):
         children = []
         for p in properties:
             if p.possible_for(file_id):
-                children.append(p.get_property(file_id))
+                if file_id:
+                    c = p.get_property(file_id)
+                else:
+                    c = p.root_property()
+                children.append(c)
 
         # Make propstat fragment
         propstat = XmlFragment("propstat", "D")
@@ -350,22 +399,19 @@ class WebDavHandler(WebHandler):
         """
 
         # Check if we are not in root
-        if current_id:
-
-            # Include properties of current directory
-            dir_resp = XmlFragment(
-                "response",
-                "D",
-                [
-                    XmlFragment(
-                        "href",
-                        "D",
-                        [XmlString(f"/{"/".join(current_path)}".replace(" ", "%20"))],
-                    ),
-                    self._list_properies(current_id, properties),
-                ],
-            )
-            xml_resp.children.append(dir_resp)
+        dir_resp = XmlFragment(
+            "response",
+            "D",
+            [
+                XmlFragment(
+                    "href",
+                    "D",
+                    [XmlString(f"/{"/".join(current_path)}".replace(" ", "%20"))],
+                ),
+                self._list_properies(current_id, properties),
+            ],
+        )
+        xml_resp.children.append(dir_resp)
 
         # Check if we have reached max depth
         if depth == 0:
@@ -420,6 +466,10 @@ class WebDavHandler(WebHandler):
             response (WebResponse): The response to this request
         """
 
+        # Check if the user tries to create root
+        if self._check_not_root(path, response):
+            return
+
         # Split path into known and new part
         known_path = path[:-1]
         new_dir = path[-1]
@@ -439,6 +489,10 @@ class WebDavHandler(WebHandler):
             session (Session): The session of the user
             response (WebResponse): The response to this request
         """
+
+        # Check if the user tries to delete root
+        if self._check_not_root(path, response):
+            return
 
         known_part = path[:-1]
         file_name = path[-1]
@@ -478,6 +532,10 @@ class WebDavHandler(WebHandler):
             session (Session): The session of the user
             response (WebResponse): The response to this request
         """
+
+        # Check if the user tries to put root
+        if self._check_not_root(path, response):
+            return
 
         # Split the path into folder and file
         known_path = path[:-1]
@@ -553,6 +611,10 @@ class WebDavHandler(WebHandler):
             response (WebResponse): The response to this request
         """
 
+        # Check if the user tries to copy root
+        if self._check_not_root(path, response):
+            return
+
         known_part = path[:-1]
         file_name = path[-1]
 
@@ -610,6 +672,10 @@ class WebDavHandler(WebHandler):
         if xml.name != "propertyupdate":
             raise ProtocolError("propertyupdate XML expected for PROPPATCH")
 
+        # Check if the user tries to patch root
+        if self._check_not_root(path, response):
+            return
+
         dir_part = path[:-1]
         file_part = path[-1]
 
@@ -640,6 +706,10 @@ class WebDavHandler(WebHandler):
             session (Session): The session of the user
             response (WebResponse): The response to this request
         """
+
+        # Check if the user tries to move root
+        if self._check_not_root(path, response):
+            return
 
         known_part = path[:-1]
         file_name = path[-1]
@@ -684,6 +754,10 @@ class WebDavHandler(WebHandler):
         Raises:
             ProtocolError: When trying to download folders
         """
+
+        # Check if the user tries to download root
+        if self._check_not_root(path, response):
+            return
 
         known_part = path[:-1]
         file_name = path[-1]

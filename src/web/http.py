@@ -102,7 +102,7 @@ class HttpRequest(WebRequest):
         try:
             content_length = int(self._headers["Content-Length"])
         except ValueError as e:
-            raise ProtocolError("Content-Length must be a number!", e)
+            raise ProtocolError("Content-Length must be a number!")
 
         if content_length >= DataReceiver.CHUNK_LENGTH:
             self._body = DataReceiver(self._socket, content_length)

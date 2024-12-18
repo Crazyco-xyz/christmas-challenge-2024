@@ -27,7 +27,7 @@ class DavProp(abc.ABC):
         return self._namespace
 
     @abc.abstractmethod
-    def possible_for(self, file_id: str) -> bool:
+    def possible_for(self, file_id: Optional[str]) -> bool:
         pass
 
     @abc.abstractmethod
@@ -42,12 +42,23 @@ class DavProp(abc.ABC):
     def set_property(self, file_id: str, data: XmlFragment) -> None:
         pass
 
+    @abc.abstractmethod
+    def _root_property(self) -> Optional[XmlFragment]:
+        pass
+
+    def root_property(self) -> Optional[XmlFragment]:
+        prop = self._root_property()
+        return XmlFragment(self.propname, "D", [] if prop is None else [prop])
+
 
 class CreationDate(DavProp):
     def __init__(self) -> None:
         super().__init__("creationdate", "D")
 
-    def possible_for(self, file_id: str) -> bool:
+    def possible_for(self, file_id: Optional[str]) -> bool:
+        if file_id is None:
+            return True
+
         return DataDB().files().is_file(file_id)
 
     def _creationdate(self, file: str) -> float:
@@ -80,12 +91,15 @@ class CreationDate(DavProp):
     def set_property(self, file_id: str, data: XmlFragment) -> None:
         return  # Property cannot be set
 
+    def _root_property(self) -> Optional[XmlFragment]:
+        return None
+
 
 class DisplayName(DavProp):
     def __init__(self) -> None:
         super().__init__("displayname", "D")
 
-    def possible_for(self, file_id: str) -> bool:
+    def possible_for(self, file_id: Optional[str]) -> bool:
         return True
 
     def _get_property(self, file_id: str) -> Optional[XmlFragment]:
@@ -94,12 +108,15 @@ class DisplayName(DavProp):
     def set_property(self, file_id: str, data: XmlFragment) -> None:
         return  # Property cannot be set
 
+    def _root_property(self) -> Optional[XmlFragment]:
+        return XmlString("Root")
+
 
 class ResourceType(DavProp):
     def __init__(self) -> None:
         super().__init__("resourcetype", "D")
 
-    def possible_for(self, file_id: str) -> bool:
+    def possible_for(self, file_id: Optional[str]) -> bool:
         return True
 
     def _get_property(self, file_id: str) -> Optional[XmlFragment]:
@@ -112,12 +129,18 @@ class ResourceType(DavProp):
     def set_property(self, file_id: str, data: XmlFragment) -> None:
         return  # Property cannot be set
 
+    def _root_property(self) -> Optional[XmlFragment]:
+        return XmlFragment("collection", "D")
+
 
 class GetContentLength(DavProp):
     def __init__(self) -> None:
         super().__init__("getcontentlength", "D")
 
-    def possible_for(self, file_id: str) -> bool:
+    def possible_for(self, file_id: Optional[str]) -> bool:
+        if file_id is None:
+            return False
+
         return DataDB().files().is_file(file_id)
 
     def _get_property(self, file_id: str) -> Optional[XmlFragment]:
@@ -126,12 +149,18 @@ class GetContentLength(DavProp):
     def set_property(self, file_id: str, data: XmlFragment) -> None:
         return  # Property cannot be set
 
+    def _root_property(self) -> Optional[XmlFragment]:
+        return None
+
 
 class GetContentType(DavProp):
     def __init__(self) -> None:
         super().__init__("getcontenttype", "D")
 
-    def possible_for(self, file_id: str) -> bool:
+    def possible_for(self, file_id: Optional[str]) -> bool:
+        if file_id is None:
+            return False
+
         return DataDB().files().is_file(file_id)
 
     def _get_property(self, file_id: str) -> XmlFragment | None:
@@ -143,12 +172,18 @@ class GetContentType(DavProp):
     def set_property(self, file_id: str, data: XmlFragment) -> None:
         return  # Property cannot be set
 
+    def _root_property(self) -> Optional[XmlFragment]:
+        return None
+
 
 class GetLastModified(DavProp):
     def __init__(self) -> None:
         super().__init__("getlastmodified", "D")
 
-    def possible_for(self, file_id: str) -> bool:
+    def possible_for(self, file_id: Optional[str]) -> bool:
+        if file_id is None:
+            return True
+
         return DataDB().files().is_file(file_id)
 
     def _make_webtime(self, unix: float) -> str:
@@ -170,12 +205,15 @@ class GetLastModified(DavProp):
 
         os.utime(os.path.join(constants.FILES, file_id), (posix_time, posix_time))
 
+    def _root_property(self) -> Optional[XmlFragment]:
+        return None
+
 
 class LockDiscovery(DavProp):
     def __init__(self) -> None:
         super().__init__("lockdiscovery", "D")
 
-    def possible_for(self, file_id: str) -> bool:
+    def possible_for(self, file_id: Optional[str]) -> bool:
         return True
 
     def _get_property(self, file_id: str) -> XmlFragment | None:
@@ -183,13 +221,16 @@ class LockDiscovery(DavProp):
 
     def set_property(self, file_id: str, data: XmlFragment) -> None:
         return  # Property cannot be set
+
+    def _root_property(self) -> Optional[XmlFragment]:
+        return None
 
 
 class SupportedLock(DavProp):
     def __init__(self) -> None:
         super().__init__("supportedlock", "D")
 
-    def possible_for(self, file_id: str) -> bool:
+    def possible_for(self, file_id: Optional[str]) -> bool:
         return True
 
     def _get_property(self, file_id: str) -> XmlFragment | None:
@@ -197,6 +238,9 @@ class SupportedLock(DavProp):
 
     def set_property(self, file_id: str, data: XmlFragment) -> None:
         return  # Property cannot be set
+
+    def _root_property(self) -> Optional[XmlFragment]:
+        return None
 
 
 class DavProperties(Enum):

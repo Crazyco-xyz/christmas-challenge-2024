@@ -15,6 +15,10 @@ class OptionsHandler(WebHandler):
         response.msg = "No Content"
 
         response.headers["Allow"] = ", ".join(
-            [e.value for _, e in WebMethod._member_map_.items()]
+            [
+                e.value
+                for n, e in WebMethod._member_map_.items()
+                if not n.startswith("_")
+            ]
         )
-        response.headers["DAV"] = "1, 3"
+        response.headers["DAV"] = "1"
