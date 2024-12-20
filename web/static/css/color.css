@@ -1,3 +1,7 @@
+/*
+ * Dark mode color scheme
+ * (-> default if no preference is set)
+ */
 :root {
   --color-background: #191919;
 
@@ -13,6 +17,9 @@
   --color-warning: #700000;
 }
 
+/*
+ * Light mode color scheme if user prefers it
+ */
 @media (prefers-color-scheme: light) {
   :root {
     --color-background: #eaeaea;

@@ -1,3 +1,6 @@
+/*
+ * The share dialog
+ */
 .share {
   position: relative;
   width: 350px;
@@ -17,6 +20,9 @@
   overflow: hidden;
 }
 
+/*
+ * Share dialog close button
+ */
 .share .close {
   position: absolute;
   top: 15px;

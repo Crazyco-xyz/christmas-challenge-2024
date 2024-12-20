@@ -1,3 +1,6 @@
+/*
+ * Main section for preview
+*/
 main {
   width: calc(50vw);
   max-width: 650px;
@@ -10,6 +13,9 @@ main {
   gap: 50px;
 }
 
+/*
+ * File name and icon
+ */
 main .title {
   display: flex;
   flex-wrap: nowrap;
@@ -31,12 +37,18 @@ main .title .icon {
   height: 60px;
 }
 
+/*
+ * File preview frame
+ */
 main iframe {
   border: 1px solid var(--color-border);
   border-radius: 5px;
   height: 50vh;
 }
 
+/*
+ * Options buttons for sharing and downloading
+ */
 main .options {
   display: flex;
   flex-direction: row;
@@ -67,6 +79,9 @@ main .options .name {
   line-height: 20px;
 }
 
+/*
+ * Overlay displayed when sharing
+ */
 #overlay .share {
   position: absolute;
   width: 350px;
@@ -81,6 +96,9 @@ main .options .name {
   gap: 15px;
 }
 
+/*
+ * Close button for overlay
+ */
 #overlay .closeico {
   position: absolute;
   right: 15px;
@@ -94,12 +112,18 @@ main .options .name {
   background-color: var(--color-sidebar-hover);
 }
 
+/*
+ * Title of overlay
+ */
 #overlay .title {
   color: var(--color-text);
   font-size: 20px;
   font-weight: 700;
 }
 
+/*
+ * Input for share password
+ */
 #overlay input {
   background: none;
   width: 200px;
@@ -112,6 +136,9 @@ main .options .name {
   font-family: monospace;
 }
 
+/*
+ * Confirm button
+ */
 #overlay button {
   background: none;
   border: none;
@@ -131,6 +158,9 @@ main .options .name {
   padding-right: 7px;
 }
 
+/*
+ * Share link display
+ */
 #linkout {
   max-width: 100%;
   overflow: hidden;

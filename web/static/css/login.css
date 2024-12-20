@@ -1,3 +1,6 @@
+/*
+ * Login overlay
+ */
 .login {
   position: relative;
   width: 350px;
@@ -17,6 +20,9 @@
   overflow: hidden;
 }
 
+/*
+ * Message box at top
+ */
 #msg {
   position: absolute;
   top: 0;
@@ -39,17 +45,26 @@
   line-height: 20px;
 }
 
+/*
+ * The title of the login box
+ */
 .login h2 {
   color: var(--color-text);
   margin-bottom: 0;
 }
 
+/*
+ * The fields of the overlay
+ */
 .login div {
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
 }
 
+/*
+ * A spacer between fields
+ */
 .login .spacer {
   height: 10px;
 }
@@ -59,6 +74,9 @@
   text-decoration: underline;
 }
 
+/*
+ * The login button
+ */
 .login button {
   background: none;
   border: none;
@@ -82,6 +100,9 @@
   line-height: 20px;
 }
 
+/*
+ * Login input fields
+ */
 .login input {
   background: none;
   width: 200px;

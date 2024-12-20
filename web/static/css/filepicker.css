@@ -1,3 +1,6 @@
+/*
+ * Main section of the file picker
+ */
 main {
   position: absolute;
   width: calc(100vw - 248px - 60px);
@@ -12,6 +15,9 @@ main {
   gap: 10px;
 }
 
+/*
+ * File or folder object
+ */
 main .object {
   width: 100px;
   height: 100px;
@@ -27,6 +33,9 @@ main .object {
   cursor: pointer;
 }
 
+/*
+ * File or folder name
+ */
 main .object .name {
   font-size: 15px;
   padding: 3px 5px;
@@ -38,6 +47,9 @@ main .object .name {
   white-space: nowrap;
 }
 
+/*
+ * Rename input field
+ */
 main .object input {
   width: 90px;
   border: none;
@@ -59,10 +71,16 @@ main .object.selected {
   background-color: var(--color-sidebar-hover);
 }
 
+/*
+ * Add folder button
+ */
 main .add {
   color: var(--color-text-dark);
 }
 
+/*
+ * Context menu
+ */
 #ctxmenu {
   position: absolute;
   width: 200px;

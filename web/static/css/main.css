@@ -23,6 +23,9 @@ body {
   width: calc(100vw - 248px);
 }
 
+/*
+ * The overlay for sevaral input dialogs
+ */
 #overlay {
   position: absolute;
   top: 0;

@@ -11,6 +11,9 @@ body {
   overflow-y: auto;
 }
 
+/*
+ * The options bar containing the save button
+ */
 #options {
   position: fixed;
   left: 0;
@@ -25,6 +28,9 @@ body {
   align-items: center;
 }
 
+/*
+ * The save button
+ */
 #options .save {
   padding: 7px;
   border-radius: 5px;
@@ -47,6 +53,9 @@ body {
   background-color: var(--color-sidebar-hover);
 }
 
+/*
+ * The text area
+ */
 ol {
   position: absolute;
   left: 0;
