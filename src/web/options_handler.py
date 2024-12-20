@@ -1,4 +1,5 @@
 from proj_types.webmethod import WebMethod
+from web.encoding import Encoding
 from web.handler import WebHandler
 from web.response import WebResponse
 
@@ -33,3 +34,4 @@ class OptionsHandler(WebHandler):
             ]
         )
         response.headers["DAV"] = "1, 3"
+        response.headers["Accept-Encoding"] = "deflate"

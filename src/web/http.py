@@ -59,7 +59,8 @@ class HttpRequest(WebRequest):
 
         # Parse status into variables
         self._method = WebMethod(status[0])
-        self._path = urllib.parse.unquote(status[1])
+        path = status[1].split("?")
+        self._path = urllib.parse.unquote(path[0])
 
     def _read_headers(self) -> None:
         """Read all provided headers
@@ -118,6 +119,28 @@ class HttpRequest(WebRequest):
 
         return HttpResponse(self._socket, self.headers)
 
+    def _decompress_body(self) -> None:
+        """Decompresses the body using the provided encodings"""
+
+        if "Content-Encoding" not in self._headers or self._body is None:
+            return
+
+        encodings = self._headers["Content-Encoding"].split(", ")
+
+        for encoding in encodings:
+            encoding = Encoding.get_encoding(encoding)
+            if encoding is None:
+                continue
+
+            if isinstance(self._body, DataReceiver):
+                decomp = encoding.chunked_decompression()
+                if decomp is None:
+                    continue
+
+                self._body.decompress(decomp)
+            else:
+                self._body = encoding.decompress(self._body)
+
 
 class HttpResponse(WebResponse):
     def __init__(
@@ -148,11 +171,29 @@ class HttpResponse(WebResponse):
 
         self._socket.close()
 
+    def _compress_sender(self, encoding: Encoding) -> bool:
+        """Appends a chunked compression algorithm to the sender
+
+        Args:
+            encoding (Encoding): The encoding to use
+
+        Returns:
+            bool: Whether this encoding supports chunked compression
+        """
+
+        if not isinstance(self.body, DataSender):
+            return False
+
+        compressor = encoding.chunked_compression()
+
+        if compressor is None:
+            return False
+
+        self.body.compress(compressor)
+        return True
+
     def _compress_body(self) -> None:
         """Tries to compress the body using the provided encodings"""
-
-        if isinstance(self.body, DataSender):
-            return
 
         # Check if there are supported encodings and a body
         if "Accept-Encoding" not in self._recv_headers or not self.body:
@@ -161,7 +202,6 @@ class HttpResponse(WebResponse):
         accept_encoding = self._recv_headers["Accept-Encoding"]
 
         used_encodings: list[str] = []
-        encoded_body: bytes = self.body
 
         # Go through all our encodings and apply them to the body
         for encoding in Encoding.supported_encodings():
@@ -169,18 +209,22 @@ class HttpResponse(WebResponse):
             if encoding.name() not in accept_encoding:
                 continue
 
-            # Check if the encoded body is smaller than original
-            tested_encoding = encoding.compress(encoded_body)
-            if len(tested_encoding) > len(encoded_body):
-                continue
+            if isinstance(self.body, DataSender):
+                if self._compress_sender(encoding):
+                    used_encodings.append(encoding.name())
 
-            # Apply encoding to the body and header list
-            encoded_body = tested_encoding
-            used_encodings.append(encoding.name())
+            else:
+                # Check if the encoded body is smaller than original
+                tested_encoding = encoding.compress(self.body)
+                if len(tested_encoding) > len(self.body):
+                    continue
+
+                # Apply encoding to the body and header list
+                self.body = tested_encoding
+                used_encodings.append(encoding.name())
 
         # Create the Content-Encoding header and set the new body
         self.headers["Content-Encoding"] = ", ".join(used_encodings)
-        self.body = encoded_body
 
     def _send_status(self) -> None:
         """Sends the status line"""
