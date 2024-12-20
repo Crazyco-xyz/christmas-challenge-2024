@@ -20,7 +20,6 @@ class UsersTable(Table):
             "user_id TEXT PRIMARY KEY",
             "email TEXT NOT NULL UNIQUE",
             "password TEXT NOT NULL",
-            "admin INTEGER",
         ]
 
     def exists(self, userid: str, email: str) -> bool:
@@ -64,14 +63,13 @@ class UsersTable(Table):
 
         return len(users) > 0
 
-    def register(self, userid: str, email: str, passwd: str, admin: bool) -> bool:
+    def register(self, userid: str, email: str, passwd: str) -> bool:
         """Registers the user
 
         Args:
             userid (str): The name of the user
             email (str): The email of the user
             passwd (str): The hashed password of the user
-            admin (bool): Whether this user is an admin
 
         Returns:
             bool: Whether the registration was successful
@@ -80,7 +78,7 @@ class UsersTable(Table):
         if self.exists(userid, email):
             return False
 
-        self.insert(user_id=userid, email=email, password=passwd, admin=int(admin))
+        self.insert(user_id=userid, email=email, password=passwd)
         return True
 
     def login(self, userid: str, passwd: str) -> bool:

@@ -8,7 +8,7 @@ SERVER_NAME = "PxNode/1.0"
 
 BUFFERED_CHUNK_SIZE = 4096
 
-MIME_DEFAULT = "application/octet-stream"
+MIME_FALLBACK = "application/octet-stream"
 
 DAV_NAME = "PxDAV"
 DAV_REALM = "PxLogin"

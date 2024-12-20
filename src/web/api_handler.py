@@ -159,8 +159,7 @@ class APIHandler(WebHandler):
             message (str): The message to show to the user
         """
 
-        response.code = 500
-        response.msg = "Invalid Form Data"
+        response.code, response.msg = 500, "Invalid Form Data"
         response.json_body({"message": message})
 
     def _register(self, body: dict[str, Any], response: WebResponse) -> None:
@@ -208,9 +207,7 @@ class APIHandler(WebHandler):
             return
 
         # Register user using data
-        userdb.register(
-            userid, email, hashlib.sha512(password.encode()).hexdigest(), False
-        )
+        userdb.register(userid, email, hashlib.sha512(password.encode()).hexdigest())
 
         response.json_body({"location": "/login"})
 
@@ -365,7 +362,7 @@ class APIHandler(WebHandler):
             )
             return
 
-        # Modify the contents of the file
+            # Modify the contents of the file
         with open(os.path.join(constants.FILES, file_id), "wb") as wf:
             if isinstance(body, DataReceiver):
                 body.receive_into(wf)
@@ -405,7 +402,8 @@ class APIHandler(WebHandler):
 
         # Guess MIME type for browser
         response.headers["Content-Type"] = (
-            mimetypes.guess_type(file_db.get_name(file_id))[0] or constants.MIME_DEFAULT
+            mimetypes.guess_type(file_db.get_name(file_id))[0]
+            or constants.MIME_FALLBACK
         )
 
         # Add content disposition for download
@@ -565,7 +563,7 @@ class APIHandler(WebHandler):
 
         # Guess MIME type for browser
         response.headers["Content-Type"] = (
-            mimetypes.guess_type(web_file)[0] or constants.MIME_DEFAULT
+            mimetypes.guess_type(web_file)[0] or constants.MIME_FALLBACK
         )
 
     def _preview(self, path: list[str], response: WebResponse) -> None:
@@ -720,7 +718,8 @@ class APIHandler(WebHandler):
         # Send the file and guess its MIME type for the browser
         response.body = DataSender(os.path.join(constants.FILES, file_id))
         response.headers["Content-Type"] = (
-            mimetypes.guess_type(file_db.get_name(file_id))[0] or constants.MIME_DEFAULT
+            mimetypes.guess_type(file_db.get_name(file_id))[0]
+            or constants.MIME_FALLBACK
         )
 
         # Add content disposition for download

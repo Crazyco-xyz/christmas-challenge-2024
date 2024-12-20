@@ -8,7 +8,7 @@ from typing import Optional
 import constants
 from proj_types.file_type import FileType
 from storage.datadb import DataDB
-from webdav.xml import XmlFragment, XmlString
+from proj_types.xml import XmlFragment, XmlString
 
 
 class DavProp(abc.ABC):
@@ -366,7 +366,7 @@ class GetContentType(DavProp):
 
         return XmlString(
             mimetypes.guess_type(DataDB().files().get_name(file_id))[0]
-            or constants.MIME_DEFAULT
+            or constants.MIME_FALLBACK
         )
 
     def set_property(self, file_id: str, data: XmlFragment) -> None:

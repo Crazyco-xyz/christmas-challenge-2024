@@ -53,7 +53,7 @@ class StaticHandler(WebHandler):
 
         # Guess the MIME type of the file
         response.headers["Content-Type"] = (
-            mimetypes.guess_type(path)[0] or constants.MIME_DEFAULT
+            mimetypes.guess_type(path)[0] or constants.MIME_FALLBACK
         )
 
         # Tell the browser static pages can be cached

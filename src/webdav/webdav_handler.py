@@ -14,7 +14,7 @@ from web.response import WebResponse
 from web.session import Session, SessionStorage
 from web.socket_data import DataReceiver, DataSender
 from webdav.properties import DavProp, DavProperties
-from webdav.xml import XmlFragment, XmlReader, XmlString
+from proj_types.xml import XmlFragment, XmlReader, XmlString
 
 type FileDict = dict[str, str | FileDict]
 
@@ -907,7 +907,7 @@ class WebDavHandler(WebHandler):
 
         # Modify the response to download the file
         response.headers["Content-Type"] = (
-            mimetypes.guess_type(file_name)[0] or constants.MIME_DEFAULT
+            mimetypes.guess_type(file_name)[0] or constants.MIME_FALLBACK
         )
         response.headers["Content-Disposition"] = f'attachment; filename="{file_name}"'
 
