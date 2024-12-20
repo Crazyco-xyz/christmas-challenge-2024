@@ -60,6 +60,12 @@ class SessionStorage:
         return session
 
     def remove_session(self, session: "Session") -> None:
+        """Removes a session from the storage
+
+        Args:
+            session (Session): The session to remove
+        """
+
         del self._sessions[session.session_id]
 
 

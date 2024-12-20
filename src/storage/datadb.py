@@ -74,10 +74,25 @@ class DataDB:
         conn.commit()
 
     def users(self) -> UsersTable:
+        """
+        Returns:
+            UsersTable: The users table of this database
+        """
+
         return UsersTable(self.add_task)
 
     def files(self) -> FilesTable:
+        """
+        Returns:
+            FilesTable: The files table of this database
+        """
+
         return FilesTable(self.add_task)
 
     def shares(self) -> ShareTable:
+        """
+        Returns:
+            ShareTable: The share table of this database
+        """
+
         return ShareTable(self.add_task)

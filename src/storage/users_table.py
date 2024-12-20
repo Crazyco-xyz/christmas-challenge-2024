@@ -3,9 +3,19 @@ from storage.table import Table
 
 class UsersTable(Table):
     def name(self) -> str:
+        """
+        Returns:
+            str: The name of the table
+        """
+
         return "users"
 
     def columns(self) -> list[str]:
+        """
+        Returns:
+            list[str]: The columns of the table
+        """
+
         return [
             "user_id TEXT PRIMARY KEY",
             "email TEXT NOT NULL UNIQUE",

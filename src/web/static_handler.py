@@ -3,12 +3,18 @@ import os
 import constants
 from web.handler import WebHandler
 from web.response import WebResponse
+from web.socket_data import DataSender
 
 
 class StaticHandler(WebHandler):
     STATIC_PREFIX = "/s/"
 
     def can_handle(self) -> bool:
+        """
+        Returns:
+            bool: Whether this handler can handle the request
+        """
+
         path = self._request.path
         if path is None:
             return False
@@ -16,6 +22,12 @@ class StaticHandler(WebHandler):
         return path.startswith(self.STATIC_PREFIX)
 
     def handle(self, response: WebResponse) -> None:
+        """Handle the request
+
+        Args:
+            response (WebResponse): The response to send static files to
+        """
+
         file_path = self._request.path
         if file_path is None:
             return
@@ -29,22 +41,19 @@ class StaticHandler(WebHandler):
 
         # The user tried to access a file outside of the static directory
         if os.path.commonpath([static_path]) != os.path.commonpath([static_path, path]):
-            response.code = 400
-            response.msg = "No"
+            response.code, response.msg = 400, "Nope"
             return
 
         if not os.path.isfile(path):
-            response.code = 404
-            response.msg = "Not found"
+            response.code, response.msg = 404, "Not found"
             return
 
-        # Read the requested file
-        with open(path, "rb") as rf:
-            response.body = rf.read()
+        # Send the requested file
+        response.body = DataSender(path)
 
         # Guess the MIME type of the file
         response.headers["Content-Type"] = (
-            mimetypes.guess_type(path)[0] or "application/octet-stream"
+            mimetypes.guess_type(path)[0] or constants.MIME_DEFAULT
         )
 
         # Tell the browser static pages can be cached

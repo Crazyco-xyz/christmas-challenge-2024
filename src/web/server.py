@@ -49,6 +49,7 @@ class WebServer:
             FileNotFoundError: When the key or certificate could not be found
         """
 
+        # Paths to the certificate and key
         cert_path = os.path.join(constants.ROOT, "cert.pem")
         key_path = os.path.join(constants.ROOT, "key.pem")
 
@@ -97,13 +98,17 @@ class WebServer:
 
         while True:
             try:
+                # Check if the socket is readable
                 readable, _, _ = select.select([self._socket], [], [], 0)
                 if self._socket not in readable:
+                    # Sleep for a bit to prevent 100% CPU usage
                     time.sleep(0.1)
                     continue
 
+                # Accept the incoming connection
                 sock, addr = self._socket.accept()
 
+                # Handle the request in a separate thread
                 threading.Thread(
                     target=self._handle,
                     args=(sock, addr),
@@ -142,7 +147,6 @@ class WebServer:
                 response = request.response()
                 handler.handle(response)
 
-                # Send the response modified by the request handler and return
                 LOG.info(
                     "%s: %d [%s] for %s: %s by %s",
                     handler.__class__.__name__,
@@ -152,18 +156,21 @@ class WebServer:
                     request.path,
                     addr[0],
                 )
+
+                # Send the response modified by the request handler and return
                 response.send()
                 return
 
             # No handler found, send error
             response = request.response()
-            response.code = 404
-            response.msg = "Not Found"
+            response.code, response.msg = 500, "No Handler Found"
 
             response.send()
 
-        except ProtocolError:
-            LOG.exception("Could not handle request because of protocol related error!")
+        except ProtocolError as e:
+            LOG.warning(
+                "Could not handle request because of protocol related error: %s", e.desc
+            )
         except Exception:
             LOG.exception("Unhandled exception while handling request!")
         finally:

@@ -6,9 +6,19 @@ from web.session import Session
 
 class ShareTable(Table):
     def name(self) -> str:
+        """
+        Returns:
+            str: The name of the table
+        """
+
         return "share"
 
     def columns(self) -> list[str]:
+        """
+        Returns:
+            list[str]: The columns of the table
+        """
+
         return [
             "share_id TEXT PRIMARY KEY",
             "file_id TEXT NOT NULL",
@@ -101,6 +111,14 @@ class ShareTable(Table):
         return shares[0][0]
 
     def has_password(self, share_id: str) -> bool:
+        """Checks if a share has a password
+
+        Args:
+            share_id (str): The share ID to check
+
+        Returns:
+            bool: Whether this share has a password
+        """
 
         shares = self.select("password", "share_id = ?", (share_id,))
 

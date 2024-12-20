@@ -1,9 +1,8 @@
 @echo off
 
-rem Script to generate SSL keys and start the application
-
 set no_cert=false
 
+rem Check if the SSL certificates exist
 for %%f in (cert.pem key.pem) do (
     if not exist "%%f" (
         set no_cert=true
@@ -12,6 +11,7 @@ for %%f in (cert.pem key.pem) do (
 )
 :break
 
+rem Generate SSL certificates if they don't exist
 if %no_cert%==true (
     echo No SSL certificate found. Generating...
     yes "" | openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes

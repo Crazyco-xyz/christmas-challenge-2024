@@ -11,6 +11,7 @@ from web.server import WebServer
 from web.static_handler import StaticHandler
 from webdav.webdav_handler import WebDavHandler
 
+# Check if the file is being executed
 if __name__ != "__main__":
     LOG.warning("This file should not be imported! Try executing it directly.")
     exit(1)

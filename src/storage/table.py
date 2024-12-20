@@ -28,19 +28,43 @@ class Table(abc.ABC):
         pass
 
     def execute_fetch(self, query: str, args=()) -> Callable[[list[str]], list[str]]:
+        """Executes a query and fetches the results
+
+        Args:
+            query (str): The query to execute
+            args (tuple, optional): The arguments to insert into the query. Defaults to ().
+
+        Returns:
+            Callable[[list[str]], list[str]]: The promise to wait for the results
+        """
+
+        # Define the function to execute the query
         def _execute(_: sqlite3.Connection, cur: sqlite3.Cursor) -> list[str]:
             cur.execute(query, args)
             return cur.fetchall()
 
+        # Create the promise and return the wait function
         promise = SQLPromise(_execute)
         self._task_callback(promise)
         return promise.wait
 
     def execute_commit(self, query: str, args=()) -> Callable[[None], None]:
+        """Executes a query and commits the results
+
+        Args:
+            query (str): The query to execute
+            args (tuple, optional): The arguments to insert into the query. Defaults to ().
+
+        Returns:
+            Callable[[None], None]: The promise to wait for the commit
+        """
+
+        # Define the function to execute the query
         def _execute(conn: sqlite3.Connection, cur: sqlite3.Cursor) -> None:
             cur.execute(query, args)
             conn.commit()
 
+        # Create the promise and return the wait function
         promise = SQLPromise(_execute)
         self._task_callback(promise)
         return promise.wait

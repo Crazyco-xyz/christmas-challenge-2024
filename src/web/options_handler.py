@@ -5,15 +5,26 @@ from web.response import WebResponse
 
 class OptionsHandler(WebHandler):
     def can_handle(self) -> bool:
+        """
+        Returns:
+            bool: Whether this handler can handle the request
+        """
+
         if self._request.method is None:
             return False
 
         return self._request.method == WebMethod.OPTIONS
 
     def handle(self, response: WebResponse) -> None:
-        response.code = 204
-        response.msg = "No Content"
+        """Send the OPTIONS response to the client
 
+        Args:
+            response (WebResponse): The response to this request
+        """
+
+        response.code, response.msg = 204, "No Content"
+
+        # Set the Allow and DAV headers
         response.headers["Allow"] = ", ".join(
             [
                 e.value
@@ -21,4 +32,4 @@ class OptionsHandler(WebHandler):
                 if not n.startswith("_")
             ]
         )
-        response.headers["DAV"] = "1"
+        response.headers["DAV"] = "1, 3"

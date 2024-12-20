@@ -99,10 +99,11 @@ class HttpRequest(WebRequest):
         # Get the length of the body
         try:
             content_length = int(self._headers["Content-Length"])
-        except ValueError as e:
+        except ValueError:
             raise ProtocolError("Content-Length must be a number!")
 
-        if content_length >= DataReceiver.CHUNK_LENGTH:
+        # Check if the body is too large to be buffered instantly
+        if content_length >= constants.BUFFERED_CHUNK_SIZE:
             self._body = DataReceiver(self._socket, content_length)
             return
 
@@ -208,6 +209,12 @@ class HttpResponse(WebResponse):
             self._socket.sendall(self.body)
 
     def _default_headers(self) -> dict[str, str]:
+        """
+        Returns:
+            dict[str, str]: The default headers for the response
+        """
+
         return {
             "Date": time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime()),
+            "Server": constants.SERVER_NAME,
         }

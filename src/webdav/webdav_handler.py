@@ -52,9 +52,10 @@ class WebDavHandler(WebHandler):
             response (WebResponse): The response to send to
         """
 
-        response.code = 401
-        response.msg = "Authenticate"
-        response.headers["WWW-Authenticate"] = 'Basic realm="Dev", charset="UTF-8"'
+        response.code, response.msg = 401, "Authenticate"
+        response.headers["WWW-Authenticate"] = (
+            f'Basic realm="{constants.DAV_REALM}", charset="UTF-8"'
+        )
 
     def _login(self, response: WebResponse) -> Optional[Session]:
         """Tries to login the request using the credentials provided
@@ -108,20 +109,16 @@ class WebDavHandler(WebHandler):
         if self._request.body is None:
             return None
 
-        # Check if the body is XML
-        if (
-            not self._request.headers.get("Content-Type", "")
-            .split(";", 1)[0]
-            .endswith("/xml")
-        ):
+        # Check if the body is application/xml or text/xml
+        content_type = self._request.headers.get("Content-Type", "").split(";", 1)[0]
+        if not content_type.endswith("/xml"):
 
             # If we are getting a PUT request different bodies are ok
             if self._request.method == WebMethod.PUT:
                 return None
 
             # Tell the client we dont understand the body
-            response.code = 415
-            response.msg = "Unsupported Body"
+            response.code, response.msg = 415, "Unsupported Body"
             return
 
         # Check if the data is too large to receive instantly
@@ -139,6 +136,12 @@ class WebDavHandler(WebHandler):
         return reader.read(None)
 
     def handle(self, response: WebResponse) -> None:
+        """Handles the request
+
+        Args:
+            response (WebResponse): The response to this request
+        """
+
         # Read body
         if (xml := self._read_body(response)) is None:
             xml = XmlFragment("empty", None)
@@ -177,13 +180,17 @@ class WebDavHandler(WebHandler):
 
         except ProtocolError as e:
             LOG.warning("Protocol error: %s", e.desc)
-            response.code = 400
-            response.msg = "Protocol Error"
+            response.code, response.msg = 400, "Protocol Error"
             return
 
     def _method_not_supported(self, response: WebResponse) -> None:
-        response.code = 405
-        response.msg = "Method Not Allowed"
+        """Sends a response that the method is not supported
+
+        Args:
+            response (WebResponse): The response to send to
+        """
+
+        response.code, response.msg = 405, "Method Not Allowed"
 
         response.headers["Allow"] = ", ".join(
             [
@@ -195,11 +202,20 @@ class WebDavHandler(WebHandler):
         response.headers["DAV"] = "1, 2"
 
     def _check_not_root(self, path: list[str], response: WebResponse) -> bool:
+        """Checks if the user tries to access the root directory and sends an error if so
+
+        Args:
+            path (list[str]): The path to check
+            response (WebResponse): The response to send the error to
+
+        Returns:
+            bool: Whether the user tries to access the root directory or not
+        """
+
         if len(path) != 0:
             return False
 
-        response.code = 403
-        response.msg = "Forbidden"
+        response.code, response.msg = 403, "Forbidden"
         return True
 
     def _folder_by_path(
@@ -238,8 +254,7 @@ class WebDavHandler(WebHandler):
             else:
 
                 # We did not find any matching path segment, send error
-                response.code = 404
-                response.msg = "Not Found"
+                response.code, response.msg = 404, "Not Found"
                 return None
 
         return file_id, root
@@ -269,8 +284,7 @@ class WebDavHandler(WebHandler):
                 return True, file_id
 
         # No file found
-        response.code = 404
-        response.msg = "Not found"
+        response.code, response.msg = 404, "Not found"
         return None
 
     def _get_depth(self) -> int:
@@ -288,6 +302,38 @@ class WebDavHandler(WebHandler):
             case _:
                 return -1
 
+    def _propfind_props(self, xml: XmlFragment) -> list[DavProp]:
+        """Lists the properties requested by the client
+
+        Args:
+            xml (XmlFragment): The XML data containing the requested properties
+
+        Returns:
+            list[DavProp]: The requested properties
+        """
+
+        # Check if we have a PROPFIND XML body
+        has_data = xml.name == "propfind"
+
+        if not has_data:
+            return DavProperties.allprop()
+
+        # List all properties requested by the client
+        properties = []
+
+        if xml.children[0].name == "prop":
+            xml = xml.children[0]
+
+        for c in xml.children:
+            if c.name == "allprop":
+                properties.extend(DavProperties.allprop())
+            else:
+                p = DavProperties.get_prop(c.name)
+                if p is not None:
+                    properties.append(p)
+
+        return properties
+
     def _propfind(
         self, path: list[str], xml: XmlFragment, session: Session, response: WebResponse
     ) -> None:
@@ -303,56 +349,74 @@ class WebDavHandler(WebHandler):
             ProtocolError: For inconsistencies with the protocol
         """
 
-        # Check if we have a PROPFIND XML body
-        has_data = xml.name == "propfind"
+        # Check if the user tries to access root
+        if len(path) == 0:
 
-        # Get the current directory
-        if (current_dir := self._folder_by_path(session, path, response)) is None:
-            return
+            # Get the directory listing
+            if (current_dir := self._folder_by_path(session, path, response)) is None:
+                return
 
-        # List all properties requested by the client
-        properties = []
-
-        if has_data:
-            if xml.children[0].name == "prop":
-                xml = xml.children[0]
-
-            for c in xml.children:
-                if c.name == "allprop":
-                    properties.extend(DavProperties.allprop())
-                else:
-                    p = DavProperties.get_prop(c.name)
-                    if p is not None:
-                        properties.append(p)
+            is_file, file_id = False, None
+            dir_list = current_dir[1]
         else:
-            properties.extend(DavProperties.allprop())
+
+            # Get the directory listing of the parent dir
+            dir_part = path[:-1]
+            file_name = path[-1]
+
+            # Get the directory listing
+            if (
+                current_dir := self._folder_by_path(session, dir_part, response)
+            ) is None:
+                return
+
+            # Search the parent directory for the file/folder requested
+            if (
+                target := self._search_file(current_dir[1], file_name, response)
+            ) is None:
+                return
+
+            is_file, file_id = target
+            dir_list = current_dir[1][file_id] if not is_file else current_dir[1]
+
+            if not isinstance(dir_list, dict):
+                dir_list = current_dir[1]
+
+        # Get the properties requested by the client
+        properties = self._propfind_props(xml)
 
         # Create the multistatus response fragment
         xml_resp = XmlFragment("multistatus", "D")
-        xml_resp.tags["xmlns:D"] = "DAV:"
+        xml_resp.properties["xmlns:D"] = "DAV:"
 
-        # PROPFIND the current directory to the depth of `depth`
-        self._propfind_dir(
-            None,
-            current_dir[1],
-            path,
-            properties,
-            xml_resp,
-            self._get_depth(),
-        )
-
-        print(XmlFragment.stringify(xml_resp))
+        # PROPFIND the current directory/file to the depth of `depth`
+        if is_file:
+            self._propfind_file(
+                path[:-1],
+                file_id or "",
+                path[-1],
+                properties,
+                xml_resp,
+            )
+        else:
+            self._propfind_dir(
+                file_id,
+                dir_list,
+                path,
+                properties,
+                xml_resp,
+                self._get_depth(),
+            )
 
         # Send the multistatus response
-        response.code = 207
-        response.msg = "Multi-Status"
+        response.code, response.msg = 207, "Multi-Status"
         response.body = XmlFragment.stringify(xml_resp).encode()
         response.headers["Content-Type"] = "application/xml"
 
     def _list_properies(
         self, file_id: Optional[str], properties: list[DavProp]
     ) -> XmlFragment:
-        """Lists all requested properties
+        """Lists all requested properties of a file/folder
 
         Args:
             file_id (str): The file/folder to list properties on or None for root
@@ -381,6 +445,41 @@ class WebDavHandler(WebHandler):
 
         return propstat
 
+    def _propfind_file(
+        self,
+        current_path: list[str],
+        file_id: str,
+        file_name: str,
+        properties: list[DavProp],
+        xml_resp: XmlFragment,
+    ) -> None:
+        """Executes a PROPFIND request on a file
+
+        Args:
+            current_path (list[str]): The current path
+            file_id (str): The ID of the file
+            file_name (str): The name of the file
+            properties (list[DavProp]): The properties requested by the client
+            xml_resp (XmlFragment): The XML response to write to
+        """
+
+        # Create the href string
+        href = f"/{ '/'.join(current_path) }{ '/' if current_path else '' }{ file_name}"
+        href = href.replace(" ", "%20")
+
+        # Create the response fragment
+        file_resp = XmlFragment(
+            "response",
+            "D",
+            [
+                XmlFragment("href", "D", [XmlString(href)]),
+                self._list_properies(file_id, properties),
+            ],
+        )
+
+        # Append the response fragment to the multistatus response
+        xml_resp.children.append(file_resp)
+
     def _propfind_dir(
         self,
         current_id: Optional[str],
@@ -401,16 +500,14 @@ class WebDavHandler(WebHandler):
             depth (int): The depth to search to
         """
 
-        # Check if we are not in root
+        # List properties for parent directory
+        href = f"/{"/".join(current_path)}".replace(" ", "%20")
+
         dir_resp = XmlFragment(
             "response",
             "D",
             [
-                XmlFragment(
-                    "href",
-                    "D",
-                    [XmlString(f"/{"/".join(current_path)}".replace(" ", "%20"))],
-                ),
+                XmlFragment("href", "D", [XmlString(href)]),
                 self._list_properies(current_id, properties),
             ],
         )
@@ -421,15 +518,15 @@ class WebDavHandler(WebHandler):
             return
 
         # Go through contents of dir
-        for id, el in dir.items():
-            if id == "_name":
+        for file_id, el in dir.items():
+            if file_id == "_name":
                 continue
 
             # Check if we encountered a dir
             if isinstance(el, dict):
                 # PROPFIND the directory
                 self._propfind_dir(
-                    id,
+                    file_id,
                     el,
                     [*current_path, str(el.get("_name", ""))],
                     properties,
@@ -438,30 +535,11 @@ class WebDavHandler(WebHandler):
                 )
                 continue
 
-            # Make one response fragment for the multistatus
-            file_resp = XmlFragment(
-                "response",
-                "D",
-                [
-                    XmlFragment(
-                        "href",
-                        "D",
-                        [
-                            XmlString(
-                                f"/{"/".join(current_path)}{"/" if len(current_path) > 0 else ""}{el}".replace(
-                                    " ", "%20"
-                                )
-                            )
-                        ],
-                    ),
-                    # List properties
-                    self._list_properies(id, properties),
-                ],
-            )
-            xml_resp.children.append(file_resp)
+            # List properties of the file
+            self._propfind_file(current_path, file_id, el, properties, xml_resp)
 
     def _mkcol(self, path: list[str], session: Session, response: WebResponse) -> None:
-        """Makes a collection
+        """Creates a folder at path
 
         Args:
             path (list[str]): The path of the collection to create
@@ -484,6 +562,8 @@ class WebDavHandler(WebHandler):
         # Create the collection
         DataDB().files().make_folder(session, current_dir[0], new_dir)
 
+        response.code, response.msg = 201, "Created"
+
     def _delete(self, path: list[str], session: Session, response: WebResponse) -> None:
         """Deletes a file or folder
 
@@ -497,6 +577,7 @@ class WebDavHandler(WebHandler):
         if self._check_not_root(path, response):
             return
 
+        # Split the path into known and file/folder part
         known_part = path[:-1]
         file_name = path[-1]
 
@@ -504,21 +585,22 @@ class WebDavHandler(WebHandler):
         if (current_dir := self._folder_by_path(session, known_part, response)) is None:
             return
 
-        file_db = DataDB().files()
-
         # Check the current folder for the file/folder to delete
         if (search := self._search_file(current_dir[1], file_name, response)) is None:
             return
         _, delete_id = search
 
+        file_db = DataDB().files()
+
         # Check if the user has access to the file/folder
         if not file_db.can_download(session, delete_id):
-            response.code = 403
-            response.msg = "Forbidden"
+            response.code, response.msg = 403, "Forbidden"
             return
 
         # Delete the file/folder
         file_db.delete_file(delete_id)
+
+        response.code, response.msg = 204, "No Content"
 
     def _put(
         self,
@@ -527,7 +609,7 @@ class WebDavHandler(WebHandler):
         session: Session,
         response: WebResponse,
     ) -> None:
-        """Performs a PUT request
+        """Uploads a new file to the server or replaces an existing file
 
         Args:
             path (list[str]): The path to write the file to
@@ -564,13 +646,12 @@ class WebDavHandler(WebHandler):
             else:
                 rf.write(body)
 
-        response.code = 201
-        response.msg = "Created"
+        response.code, response.msg = 201, "Created"
 
     def _copy_file(
         self, session: Session, source_id: str, target_dir: str, target_name: str
     ) -> None:
-        """Copies one file
+        """Copies one file to a new location with a new name
 
         Args:
             session (Session): The session to copy files in
@@ -579,31 +660,57 @@ class WebDavHandler(WebHandler):
             target_name (str): The name of the target
         """
 
+        # Create the new file
         target_id = DataDB().files().make_file(session, target_dir[0], target_name)
 
+        # Copy the contents of the file
         self._copy_file_contents(source_id, target_id)
 
     def _copy_file_contents(self, source_id: str, target_id: str) -> None:
-        # Copy the source file's contents into the target file
+        """Copies the file contents of a file to another
+
+        Args:
+            source_id (str): The file to copy from
+            target_id (str): The file to copy to
+        """
+
+        # Open source file
         with open(os.path.join(constants.FILES, source_id), "rb") as source:
+
+            # Open target file
             with open(os.path.join(constants.FILES, target_id), "wb") as target:
-                while len(data := source.read(4096)) == 0:
+
+                # Copy the contents
+                while len(data := source.read(constants.BUFFERED_CHUNK_SIZE)) == 0:
                     target.write(data)
 
     def _copy_dir(
         self, session: Session, source_id: str, target_id: str, target_name: str
     ) -> None:
+        """Copies a directory to a new location with a new name
+
+        Args:
+            session (Session): The session of the user
+            source_id (str): The ID of the source directory
+            target_id (str): The ID of the target directory's parent
+            target_name (str): The name of the new directory
+        """
+
         file_db = DataDB().files()
 
+        # Create new and get listing of old directory
         source_dir = file_db.list_all(session, source_id)
         target_dir = file_db.make_folder(session, target_id, target_name)
 
+        # Go through all files and directories in the source directory
         for file_id, el in source_dir.items():
             if isinstance(el, dict):
+                # If the element is a directory, copy it whole
                 self._copy_dir(session, file_id, target_dir, str(el.get("_name", "")))
+
             else:
-                new_id = file_db.make_file(session, target_dir, el)
-                self._copy_file_contents(file_id, new_id)
+                # If the element is a file, copy it
+                self._copy_file(session, file_id, target_dir, el)
 
     def _copy(self, path: list[str], session: Session, response: WebResponse) -> None:
         """Copies a file or folder to a new destination
@@ -618,6 +725,7 @@ class WebDavHandler(WebHandler):
         if self._check_not_root(path, response):
             return
 
+        # Split the path into known and file/folder part
         known_part = path[:-1]
         file_name = path[-1]
 
@@ -625,7 +733,7 @@ class WebDavHandler(WebHandler):
         if (current_dir := self._folder_by_path(session, known_part, response)) is None:
             return
 
-        # Check the current folder for the file/folder to delete
+        # Check the current folder for the file/folder to copy
         if (search := self._search_file(current_dir[1], file_name, response)) is None:
             return
         is_file, file_id = search
@@ -640,6 +748,7 @@ class WebDavHandler(WebHandler):
                 target.pop(0)
             target.pop(0)
 
+        # Split the destination into known and new part
         known_target = target[:-1]
         target_name = target[-1]
 
@@ -654,6 +763,7 @@ class WebDavHandler(WebHandler):
             self._copy_file(session, file_id, target_dir[0], target_name)
 
         else:
+            # Otherwise copy the whole directory
             self._copy_dir(session, file_id, target_dir[0], target_name)
 
     def _proppatch(
@@ -679,6 +789,7 @@ class WebDavHandler(WebHandler):
         if self._check_not_root(path, response):
             return
 
+        # Split the path into known and file part
         dir_part = path[:-1]
         file_part = path[-1]
 
@@ -695,11 +806,17 @@ class WebDavHandler(WebHandler):
         set_xml = xml.children[0]
         prop_xml = set_xml.children[0]
 
-        # Go through all properties and change them
+        # Go through all properties
         for c in prop_xml.children:
+
             prop = DavProperties.get_prop(c.name)
             if prop is not None and len(c.children) > 0:
-                prop.set_property(file_id, c.children[0])
+
+                # Check if the target supports this property
+                if prop.possible_for(file_id):
+
+                    # Set the property to the new value
+                    prop.set_property(file_id, c.children[0])
 
     def _move(self, path: list[str], session: Session, response: WebResponse) -> None:
         """Moves a file or folder into a new directory with a new name
@@ -714,6 +831,7 @@ class WebDavHandler(WebHandler):
         if self._check_not_root(path, response):
             return
 
+        # Split the path into known and file part
         known_part = path[:-1]
         file_name = path[-1]
 
@@ -726,22 +844,27 @@ class WebDavHandler(WebHandler):
             return
         _, file_id = search
 
+        # Get the destination
         target = self._request.headers["Destination"].strip("/").split("/")
         localip = self._request.headers.get("Host", "")
 
+        # Strip the domain off the destination
         if "" in target:
             while target[0] != localip:
                 target.pop(0)
             target.pop(0)
 
+        # Split the destination into known and new part
         known_target = target[:-1]
         target_name = target[-1]
 
+        # Get the target directory
         if (
             target_dir := self._folder_by_path(session, known_target, response)
         ) is None:
             return
 
+        # Move the file
         file_db = DataDB().files()
         file_db.move(file_id, target_dir[0])
         file_db.rename(file_id, target_name)
@@ -762,6 +885,7 @@ class WebDavHandler(WebHandler):
         if self._check_not_root(path, response):
             return
 
+        # Split the path into known and file part
         known_part = path[:-1]
         file_name = path[-1]
 
@@ -774,13 +898,16 @@ class WebDavHandler(WebHandler):
             return
         is_file, file_id = search
 
+        # Check if the file is a folder
         if not is_file:
             raise ProtocolError("Downloading of folders is not supported")
 
+        # Get the file name
         file_name = DataDB().files().get_name(file_id)
 
+        # Modify the response to download the file
         response.headers["Content-Type"] = (
-            mimetypes.guess_type(file_name)[0] or "application/octet-stream"
+            mimetypes.guess_type(file_name)[0] or constants.MIME_DEFAULT
         )
         response.headers["Content-Disposition"] = f'attachment; filename="{file_name}"'
 

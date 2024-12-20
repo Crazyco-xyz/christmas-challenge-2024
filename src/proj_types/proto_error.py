@@ -12,4 +12,9 @@ class ProtocolError(RuntimeError):
 
     @property
     def desc(self) -> str:
+        """
+        Returns:
+            str: A short description of what went wrong
+        """
+
         return self._text

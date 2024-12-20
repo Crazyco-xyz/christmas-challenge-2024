@@ -11,9 +11,19 @@ type FileDict = dict[str, str | FileDict]
 
 class FilesTable(Table):
     def name(self) -> str:
+        """
+        Returns:
+            str: The name of the table
+        """
+
         return "files"
 
     def columns(self) -> list[str]:
+        """
+        Returns:
+            list[str]: The columns of the table
+        """
+
         return [
             "file_id TEXT PRIMARY KEY",
             "user_id TEXT NOT NULL",
@@ -113,6 +123,16 @@ class FilesTable(Table):
     def make_folder(
         self, user_session: Session, parent_dir: str, folder_name: str
     ) -> str:
+        """Creates a new folder in the database
+
+        Args:
+            user_session (Session): The session of the user
+            parent_dir (str): The parent directory of the folder
+            folder_name (str): The name of the folder
+
+        Returns:
+            str: The ID of the created folder
+        """
 
         # Create new file ID
         file_id = self._make_file_id()
@@ -253,6 +273,15 @@ class FilesTable(Table):
         return file_dict
 
     def file_type(self, file_id: str) -> FileType:
+        """Retrieves the type of the file
+
+        Args:
+            file_id (str): The ID of the file
+
+        Returns:
+            FileType: The type of the file
+        """
+
         files = self.select("file_type", "file_id = ?", (file_id,))
 
         return FileType(files[0][0])

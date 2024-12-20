@@ -15,5 +15,6 @@ class WebMethod(Enum):
     PROPPATCH = "PROPPATCH"
     MOVE = "MOVE"
 
+    # Currently unsupported WebDAV methods
     _LOCK = "LOCK"
     _UNLOCK = "UNLOCK"
