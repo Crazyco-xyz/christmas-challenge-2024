@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Text Editor</title>
+    <link rel="stylesheet" href="/s/fontawesome/css/all.css" />
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      video {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        background-size: cover;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <video src="" alt="" id="vid" controls="visible"></video>
+
+    <script>
+      const path = location.href.split("/"),
+        fileId = path[path.length - 1];
+
+      document.getElementById("vid").src = `/a/v1/${fileId}`;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Your Folders</title>
+    <link rel="stylesheet" href="/s/css/main.css" />
+    <link rel="stylesheet" href="/s/css/filepicker.css" />
+    <link rel="stylesheet" href="/s/fontawesome/css/all.css" />
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <div class="bar spacer"></div>
+
+      <!-- User icon and logout -->
+      <div class="bar bold">
+        <i class="fa-regular fa-user icon"></i>
+        <span class="name" id="user">Your Files</span>
+        <span class="btn"></span>
+
+        <a class="btn-icon" href="/logout"
+          ><i class="fa-solid fa-arrow-right-from-bracket"></i
+        ></a>
+      </div>
+      <div class="spacer"></div>
+
+      <!-- Home tab -->
+      <div class="bar clickable" id="home">
+        <i class="fa-solid fa-house icon"></i>
+        <span class="name">Home</span>
+      </div>
+      <div class="spacer"></div>
+
+      <div class="bar title">Your Files</div>
+
+      <!-- Users root folders will go here -->
+
+      <div id="upload">
+        <div>
+          <i class="fa-solid fa-upload icon"></i>
+          <span class="name">Upload</span>
+        </div>
+        <small class="description">
+          Drop files or click here to upload them into your current directory.
+        </small>
+        <input type="file" name="file" id="file" style="opacity: 0" multiple />
+      </div>
+    </div>
+
+    <!-- Top bar containing breadcrumbs and options -->
+    <div id="topbar">
+      <!-- Breadcrumbs -->
+      <div class="breadcrumbs"></div>
+
+      <!-- Options -->
+      <div class="options">
+        <div class="btn" id="moveback">
+          <i class="fa-solid fa-arrow-left"></i>
+        </div>
+        <div class="btn" id="movefwd">
+          <i class="fa-solid fa-arrow-right"></i>
+        </div>
+        <div class="spacer"></div>
+        <div class="btn" id="moveup">
+          <i class="fa-solid fa-arrow-up"></i>
+        </div>
+        <div class="spacer"></div>
+      </div>
+    </div>
+
+    <!-- The main section showing files and folders -->
+    <main></main>
+
+    <!-- The context menu for rightclicking files -->
+    <div id="ctxmenu" style="display: none">
+      <div id="ctxdownload">
+        <i class="fa-solid fa-download icon"></i>
+        <span class="name">Download</span>
+      </div>
+      <div id="ctxrename">
+        <i class="fa-solid fa-i-cursor icon"></i>
+        <span class="name">Rename</span>
+      </div>
+      <div id="ctxdelete">
+        <i class="fa-regular fa-trash-can icon"></i>
+        <span class="name">Delete</span>
+      </div>
+    </div>
+
+    <script type="module" src="/s/js/filepicker.js"></script>
+  </body>
+</html>

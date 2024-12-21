@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Your Files</title>
+    <link rel="stylesheet" href="/s/css/main.css" />
+    <link rel="stylesheet" href="/s/css/filepreview.css" />
+    <link rel="stylesheet" href="/s/fontawesome/css/all.css" />
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <div class="spacer"></div>
+
+      <!-- User icon and logout -->
+      <div class="bar bold">
+        <i class="fa-regular fa-user icon"></i>
+        <span class="name">File Preview</span>
+        <span class="btn"></span>
+
+        <i class="fa-solid fa-arrow-right-from-bracket btn-icon"></i>
+      </div>
+      <div class="spacer"></div>
+
+      <!-- Home tab -->
+      <div class="bar clickable" id="home">
+        <i class="fa-solid fa-house icon"></i>
+        <span class="name">Home</span>
+      </div>
+      <div class="bar spacer"></div>
+
+      <div class="bar title">Your Folders</div>
+
+      <!-- User's folders inside root will go here -->
+    </div>
+
+    <!-- Top bar containing breadcrumbs and options -->
+    <div id="topbar">
+      <!-- Breadcrumbs -->
+      <div class="breadcrumbs"></div>
+
+      <!-- Options -->
+      <div class="options">
+        <div class="btn" id="close">
+          <i class="fa-solid fa-xmark"></i>
+        </div>
+        <div class="spacer"></div>
+      </div>
+    </div>
+
+    <!-- The main section showing the previewed file -->
+    <main>
+      <div class="title">
+        <i class="fa-regular fa-4x icon" id="fileico"></i>
+        <span class="name" id="filename"></span>
+      </div>
+
+      <div class="options">
+        <div id="download">
+          <i class="fa-solid fa-download icon"></i>
+          <span class="name">Download</span>
+        </div>
+        <div id="share">
+          <i class="fa-solid fa-share icon"></i>
+          <span class="name">Share</span>
+        </div>
+      </div>
+
+      <iframe src="" title="Preview" id="preview"></iframe>
+    </main>
+    <script type="module" src="/s/js/filepreview.js"></script>
+  </body>
+</html>

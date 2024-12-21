@@ -1,0 +1,174 @@
+/*
+ * Main section for preview
+*/
+main {
+  width: calc(50vw);
+  max-width: 650px;
+  height: calc(100vh - 60px - 100px);
+
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: column;
+  padding: 50px;
+  gap: 50px;
+}
+
+/*
+ * File name and icon
+ */
+main .title {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: column;
+  align-items: baseline;
+  gap: 20px;
+  padding: 50px;
+}
+
+main .title .name {
+  color: var(--color-text);
+  font-size: 32px;
+  font-weight: 900;
+  height: 32px;
+}
+
+main .title .icon {
+  transform: translateX(10px);
+  height: 60px;
+}
+
+/*
+ * File preview frame
+ */
+main iframe {
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  height: 50vh;
+}
+
+/*
+ * Options buttons for sharing and downloading
+ */
+main .options {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 25px;
+  justify-content: center;
+}
+
+main .options div {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+main .options div:hover {
+  background-color: var(--color-sidebar-hover);
+}
+
+main .options .icon {
+  margin-right: 7px;
+}
+
+main .options .name {
+  line-height: 20px;
+}
+
+/*
+ * Overlay displayed when sharing
+ */
+#overlay .share {
+  position: absolute;
+  width: 350px;
+  height: 350px;
+  background-color: var(--color-sidebar);
+  border-radius: 5px;
+  padding: 40px;
+  border: 1px solid var(--color-border);
+
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/*
+ * Close button for overlay
+ */
+#overlay .closeico {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  padding: 5px 7px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#overlay .closeico:hover {
+  background-color: var(--color-sidebar-hover);
+}
+
+/*
+ * Title of overlay
+ */
+#overlay .title {
+  color: var(--color-text);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/*
+ * Input for share password
+ */
+#overlay input {
+  background: none;
+  width: 200px;
+  border: 1px solid var(--color-border);
+  padding: 5px;
+  color: var(--color-text);
+  outline: none;
+  border-radius: 5px;
+
+  font-family: monospace;
+}
+
+/*
+ * Confirm button
+ */
+#overlay button {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 16px;
+  padding: 10px;
+  width: max-content;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#overlay button:hover {
+  background-color: var(--color-sidebar-hover);
+}
+
+#overlay .icon {
+  padding-right: 7px;
+}
+
+/*
+ * Share link display
+ */
+#linkout {
+  max-width: 100%;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  padding: 20px;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  cursor: text;
+  user-select: all;
+}

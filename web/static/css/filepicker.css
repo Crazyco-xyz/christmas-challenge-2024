@@ -1,0 +1,114 @@
+/*
+ * Main section of the file picker
+ */
+main {
+  position: absolute;
+  width: calc(100vw - 248px - 60px);
+  max-height: calc(100vh - 50px - 60px);
+  padding: 30px;
+  left: 248px;
+  top: 50px;
+
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  gap: 10px;
+}
+
+/*
+ * File or folder object
+ */
+main .object {
+  width: 100px;
+  height: 100px;
+  border-radius: 5px;
+
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  cursor: pointer;
+}
+
+/*
+ * File or folder name
+ */
+main .object .name {
+  font-size: 15px;
+  padding: 3px 5px;
+  border-radius: 5px;
+  max-width: 90px;
+  text-align: center;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/*
+ * Rename input field
+ */
+main .object input {
+  width: 90px;
+  border: none;
+  outline: none;
+
+  background-color: var(--color-sidebar);
+  color: var(--color-text);
+}
+
+main .object:hover {
+  color: var(--color-text);
+}
+
+main .object:hover .name {
+  background-color: var(--color-sidebar-hover);
+}
+
+main .object.selected {
+  background-color: var(--color-sidebar-hover);
+}
+
+/*
+ * Add folder button
+ */
+main .add {
+  color: var(--color-text-dark);
+}
+
+/*
+ * Context menu
+ */
+#ctxmenu {
+  position: absolute;
+  width: 200px;
+  height: max-content;
+  background-color: var(--color-sidebar);
+  border: 1px solid var(--color-border);
+  padding: 10px;
+  border-radius: 5px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  z-index: 100;
+}
+
+#ctxmenu div {
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#ctxmenu div:hover {
+  background-color: var(--color-sidebar-hover);
+}
+
+#ctxmenu .icon {
+  margin-left: 5px;
+  margin-right: 7px;
+  width: 15px;
+  text-align: center;
+}

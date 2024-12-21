@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Register</title>
+    <link rel="stylesheet" href="/s/css/main.css" />
+    <link rel="stylesheet" href="/s/css/login.css" />
+    <link rel="stylesheet" href="/s/fontawesome/css/all.css" />
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <div class="bar spacer"></div>
+
+      <!-- User icon and logout -->
+      <div class="bar bold">
+        <i class="fa-regular fa-user icon"></i>
+        <span class="name">Your Files</span>
+        <span class="btn"></span>
+
+        <i class="fa-solid fa-arrow-right-from-bracket btn-icon"></i>
+      </div>
+      <div class="bar spacer"></div>
+
+      <!-- Search bar -->
+      <div class="bar clickable">
+        <i class="fa-solid fa-magnifying-glass icon"></i>
+        <span class="name">Search</span>
+      </div>
+
+      <!-- Home tab -->
+      <div class="bar clickable">
+        <i class="fa-solid fa-house icon"></i>
+        <span class="name">Home</span>
+      </div>
+    </div>
+
+    <!-- Top bar containing breadcrumbs and options -->
+    <div id="topbar">
+      <!-- Breadcrumbs -->
+      <div class="breadcrumbs">
+        <div class="hover">
+          <i class="fa-regular fa-user icon"></i>
+          <span class="name">user</span>
+        </div>
+        <div class="spacer">/</div>
+        <div class="hover">
+          <i class="fa-solid fa-key icon"></i>
+          <span class="name">register</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="overlay">
+      <form action="" class="login" id="registerform">
+        <div id="msg" style="opacity: 0">
+          <div class="spacer"></div>
+          <i class="fa-solid fa-circle-exclamation icon"></i>
+          <span class="message"></span>
+        </div>
+        <div>
+          <h2>Register</h2>
+          <a href="/login"><small>You want to login instead?</small></a>
+        </div>
+
+        <div class="spacer"></div>
+
+        <div>
+          <label for="userid">Username</label>
+          <input
+            type="text"
+            name="userid"
+            id="userid"
+            autocomplete="username"
+            required
+          />
+        </div>
+
+        <div>
+          <label for="email">Email</label>
+          <input
+            type="email"
+            name="email"
+            id="email"
+            autocomplete="email"
+            required
+          />
+        </div>
+
+        <div>
+          <label for="passwd">Password</label>
+          <input
+            type="password"
+            name="passwd"
+            id="passwd"
+            autocomplete="new-password"
+            required
+          />
+        </div>
+
+        <div class="spacer"></div>
+
+        <button>
+          <i class="fa-solid fa-key icon"></i>
+          <span class="name">Register</span>
+        </button>
+      </form>
+    </div>
+
+    <script src="/s/js/login.js"></script>
+  </body>
+</html>

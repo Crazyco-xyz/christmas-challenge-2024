@@ -1,0 +1,38 @@
+/*
+ * Dark mode color scheme
+ * (-> default if no preference is set)
+ */
+:root {
+  --color-background: #191919;
+
+  --color-sidebar: #202020;
+  --color-sidebar-hover: #2c2c2c;
+
+  --color-border: #373737;
+
+  --color-text: #cecece;
+  --color-text-secondary: #9b9b9b;
+  --color-text-dark: #5a5a5a;
+
+  --color-warning: #700000;
+}
+
+/*
+ * Light mode color scheme if user prefers it
+ */
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-background: #eaeaea;
+
+    --color-sidebar: #e5e5e5;
+    --color-sidebar-hover: #d6d6d6;
+
+    --color-border: #b1b1b1;
+
+    --color-text: #000000;
+    --color-text-secondary: #7a7a7a;
+    --color-text-dark: #999999;
+
+    --color-warning: #ff0000;
+  }
+}
