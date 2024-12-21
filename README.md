@@ -11,7 +11,7 @@ implementation below. _Have fun reading!_
 ### How are the files stored?
 
 I decided pretty early that I wanted to go with a hybrid approach for file storage. This means, storing all
-properties belonging to the file inside a database and storing the actual file data directly on HDD. This approach
+properties belonging to the file inside a database and storing the actual file data directly on disk. This approach
 makes file lookup way faster than if storing the binary data inside the database, which would bloat one file into
 extremes.
 
@@ -21,16 +21,17 @@ should only happen when storing millions of files. More about this [below](#many
 ### Why did I use Python?
 
 I mainly used Python because it can run on many systems without problems. Obviously the uncompiled nature of Python
-makes the application slower than compiled languages. This also means there is only one version of the application
-which can run on many different environments, unlike compiled languages where you would need one binary
-for each platform.
+makes the application slower than compiled languages. Not needing to compile the project also means there is only one
+version of the application which can run on many different environments, unlike compiled languages where you would
+need one binary for each platform.
 
 ## Libraries
 
-I wanted to use as few libraries as possible, because I really like doing protocol implementations myself. Pretty
-early it was clear that I didn't want any external libraries in this project and I only allowed myself to use a few
-of the internal libraries which Python has out of the box. If you want to learn more about the separate libraries I
-used, you can look into the separate [libraries document](LIBRARIES.md).
+I wanted to use as few libraries as possible, because I got intrigued by the the `Dependencies` section of the
+[Judging Criteria](CHALLENGE.md#-judging-criteria) and I like implementing protocols myself anyways. Pretty early it
+was clear that I didn't want any external libraries in this project and I only allowed myself to use a few of the
+internal libraries which Python has out of the box. If you want to learn more about all libraries I used, you can
+take a look at the [libraries document](LIBRARIES.md) containing more information.
 
 The only external library I allowed myself to use was [FontAwesome](https://github.com/FortAwesome/Font-Awesome)
 which provided the icons I used in the frontend. The whole backend runs without needing any external libraries and
@@ -39,7 +40,8 @@ the rest of the frontend is written in vanilla `HTML`, `CSS` and `JS`.
 The HTTPS interface runs using the `ssl` python library. The only problem with this approach is that the library
 doesn't generate any keys or certificates that are neccecary for HTTPS to work. Because of this, I decided to
 utilize the `openssl` command line utility that comes either with the standard Linux system utilities or with GIT
-on Windows.
+on Windows. Yes, this is kind of cheating my own goal, but I didn't feel like implementing this myself, mostly
+without relying on any other libraries.
 
 If you want to use your own certificate and private RSA key, you can do so by putting them in the root directory of
 this project and naming them `key.pem` and `cert.pem` respectively. After a restart of the backend, they should get
@@ -48,17 +50,17 @@ loaded automatically.
 ## Web Interface
 
 As stated before I wrote the whole frontend in vanilla `HTML`, `CSS` and `JS`. Using any libraries here would
-defeat the whole purpose of this project, because the frontend is the part that needs the least amount of things to
-run, because everything gets computed in the backend.
+defeat the whole purpose of this project, because the frontend mostly relies on the backend which gives it all
+neccecary data for it to operate.
 
-After starting the backend you can find the frontend interface by using your browser to go to the address where the
-server which is running the backend is located. You can access this using HTTP or HTTPS, but when using a
-self-signed certificate, the browser might complain when using HTTPS. In the development environment this can
-savely be ignored.
+After starting the backend you can find the frontend interface by using your browser to go to the IP address where
+the server which is running the backend is located. You can access the interface using `HTTP` or `HTTPS`, but when
+using a self-signed certificate, the browser might complain when using `HTTPS`. In the development environment this
+can savely be ignored.
 
 After logging in, you will find the file picker in which you can see all your uploaded files. In the beginning this
 will be empty, but you can upload files using the upload box in the bottom left. For creating folders, you
-double-click on the `Create Folder` icon located at the end of the file listing.
+click on the `Create Folder` icon located at the end of the file listing.
 
 Files can be opened/previewed by double-clicking on them, just like folders. More options are available by
 right-clicking on files or folders. The sidebar on the left shows you a quick access to the folders located in the
@@ -81,8 +83,8 @@ which supports the WebDAV protocol, like `WinSCP` or `FileZilla`. As an importan
 
 I personally chose to not support Windows Explorer, because after implementing the WebDAV protocol I noticed, that
 Explorer does not follow the protocol as defined in [RFC 4918](https://datatracker.ietf.org/doc/html/rfc4918). This
-lead to hours of debugging which lead to no result. Even other servers supporting WebDAV do not completely work
-with Windows Explorer, for example CivetWeb as discussed in
+lead to hours of debugging without any results. Even other servers supporting WebDAV do not completely work
+with Windows Explorer, for example [CivetWeb](https://github.com/civetweb/civetweb) as discussed in
 [this issue](https://github.com/civetweb/civetweb/issues/1040).
 
 As of now, Windows Explorer only partially works. Opening and deleting already existing files should work. Renaming
@@ -117,17 +119,16 @@ The following environments have been tested and fully work:
 
 - **Windows 11 23H2**
 
-  ⇨ Installed Python 3.12, installed GIT and added GIT's bin folder to PATH
+  ⇨ Installed Python 3.12, installed GIT and added `C:\Program Files\Git\usr\bin` to PATH
 
 ### Startup
 
-If you are on **Linux**, you need to add the executable flag to the `run.sh` using `chmod +x ./run.sh` and run the
-`run.sh` file using sudo, because otherwise the application cannot use the ports `80` and `443`. To change the
-ports used and not use sudo, you can edit the `src/constants.py` file.
+If you are on **Linux**, you need to run the `run.sh` file using sudo, because otherwise the application cannot use
+the ports `80` and `443`. To change the ports used and not use sudo, you can edit the `src/constants.py` file.
 
-To start the backend, you simply run the `run.sh` or `run.bat` file, according to your system. Upon first startup,
-the script will generate a private RSA key and a self-signed certificate which will be used for HTTPS. You can
-savely ignore the output of this process.
+To start the backend, simply follow the commands below depending your operating system. Upon first startup, the
+script will generate a private RSA key and a self-signed certificate which will be used for HTTPS. You can savely
+ignore the output of this process.
 
 When started up successfully, you should see the following log messages. After this, the backend started up
 successfully and you can access the frontend interface like [described above](#web-interface).
@@ -138,14 +139,31 @@ successfully and you can access the frontend interface like [described above](#w
 ```
 
 Stopping the application can be achieved using <kbd>Ctrl</kbd> + <kbd>C</kbd>. Any file upload in progress will
-immediately be stopped which might result in partial files. Be careful!
+immediately be stopped which might result in partial files. _Be careful!_
+
+#### Linux
+
+```bash
+git clone https://github.com/JoaStuart/christmas-challenge-2024.git
+cd christmas-challenge-2024
+chmod +x ./run.sh
+sudo ./run.sh
+```
+
+#### Windows
+
+```ps1
+git clone https://github.com/JoaStuart/christmas-challenge-2024.git
+cd christmas-challenge-2024
+./run.bat
+```
 
 ## Known problems
 
 ### Public access
 
 Everyone having access to the web interface can upload as many files as they please which might quickly lead to no
-space on the HDD and/or high CPU usage. Be careful where you expose the IP.
+more space on the disk and/or high CPU usage. Be careful where you expose the IP.
 
 ### Compressed data
 
