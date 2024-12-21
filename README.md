@@ -29,7 +29,7 @@ for each platform.
 
 I wanted to use as few libraries as possible, because I really like doing protocol implementations myself. Pretty
 early it was clear that I didn't want any external libraries in this project and I only allowed myself to use a few
-of the internal libraries which Python has out of the box. I you want to learn more about the separate libraries I
+of the internal libraries which Python has out of the box. If you want to learn more about the separate libraries I
 used, you can look into the separate [libraries document](LIBRARIES.md).
 
 The only external library I allowed myself to use was [FontAwesome](https://github.com/FortAwesome/Font-Awesome)
@@ -132,13 +132,13 @@ savely ignore the output of this process.
 When started up successfully, you should see the following log messages. After this, the backend started up
 successfully and you can access the frontend interface like [described above](#web-interface).
 
-Stopping the application can be achieved using <kbd>Ctrl</kbd> + <kbd>C</kbd>. Any file upload in progress will
-immediately be stopped which might result in partial files. Be careful!
-
 ```text
 [I] Starting server on 0.0.0.0:80
 [I] Starting server on 0.0.0.0:443
 ```
+
+Stopping the application can be achieved using <kbd>Ctrl</kbd> + <kbd>C</kbd>. Any file upload in progress will
+immediately be stopped which might result in partial files. Be careful!
 
 ## Known problems
 
