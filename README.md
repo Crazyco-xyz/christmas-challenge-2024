@@ -1,137 +1,163 @@
-# 🎄 Christmas Coding Challenge 🎄
-Welcome to the first Christmas Coding Challenge hosted by CrazyCo! This year, we’re challenging you to create a file server with a key part being your backend, exciting features, functionality, and an emphasis on code quality. 
+# Readme
 
-### The 1st prize includes a 1-year subscription to both [Boot.dev](https://boot.dev/) and 120 Nodes for [Netdata.cloud](https://netdata.cloud). 
-<br>
+## Architecture
 
-# ❤️ Sponsors:
-This project would not be possible without some sponsors and people that promote the event:
+### How are the files stored?
 
-| Who?                | What?                                      | Their Link(s)                                                                           |
-|---------------------|--------------------------------------------|-----------------------------------------------------------------------------------------|
-| CrazyCo `(us)`      | Concept, planning, management, funding     | [Discord](https://discord.gg/crazyco), [Website](https://crazyco.xyz)                   |
-| Boot.dev            | Promoting, Funding                         | [Discord](https://discord.gg/bootdotdev), [Website](https://boot.dev/)                  |
-| SyntheticPlayground | Promoting, funding                         | [Discord](https://discord.gg/syntheticplayground)                                       |
-| Netdata             | Promoting, funding                         | [Discord](https://discord.gg/mPZ6WZKKG2), [Website](https://netdata.cloud/)             |
-| @johnhammond        | Promoting                                  | [Discord](https://discord.gg/mQQ5NsTbfF), [Youtube](https://youtube.com/johnhammond010) |
-| @ericparker         | Promoting                                  | [Discord](https://discord.gg/ericparker), [Youtube](https://youtube.com/@ericparker)    |
-| @xmasterx           | Promoting                                  | [Discord](https://discord.gg/HmY4xSw7Zt), [Github](https://github.com/xmasterx)         |
-<br>
+I decided pretty early that I wanted to go with a hybrid approach for file storage. This means, storing all
+properties belonging to the file inside a database and storing the actual file data directly on HDD. This approach
+makes file lookup way faster than if storing the binary data inside the database, which would bloat one file into
+extremes.
 
-# 📜 Challenge Overview:
-Your task is to build a file server with as many of the following characteristics as you can manage:
-- [ ] File management: The server should support basic file storage and retrieval.
-- [ ] Authentication: Provide options for protected and unprotected files
-- [ ] Encryption: Include functionality to encrypt and decrypt files during storage or transfer
-- [ ] Access: The file server should be accessible via a web application that runs on a Linux server.
-<br><sub><sub>(Latest stable version of Debian, Fedora, or Ubuntu. Please specify in your submission.)</sub></sub><br>
-<br>
+Storing all files in one folder can lead to problems tho, but on modern file systems like `NTFS` or `ext4` this
+should only happen when storing millions of files. More about this [below](#many-files-in-one-folder)!
 
-# 🛠 Rules and Requirements:
-- Teams:
-  - This challenge is designed for single devs. Duos will be allowed but will be rated accordingly to keep it fair. If we find more than two contributors towards code (if they merely fix your readme typos its whatever), then we will disqualify you.
+### Why did I use Python?
 
-- Project Scale:
-  - The challenge is designed to exhaust full working days where possible. Focus on a small-to-medium scope for the project.
+I mainly used Python because it can run on many systems without problems. Obviously the uncompiled nature of Python
+makes the application slower than compiled languages. But this also means there is only one version of the
+application which can run on many different environments, unlike compiled languages where you would need one binary
+for each platform.
 
-- Code Standards:
-  - The project must be your original work.
-  - Do NOT use excessive AI. It's okay if you let it write some small helper function; we would too. But keep it minimal; we will run some checks. 
-  - Use Python, JS, Rust, or Go, and try to keep dependencies minimal.
-  - Ensure your code is well-documented and follows best practices.
+## Libraries
 
-- Supported Protocols:
-  - Bonus points for implementing WebDAV or other file transfer protocols.
-  - Compatibility with Windows tools is encouraged but not mandatory.
+I wanted to use as few libraries as possible, because I really like doing protocol implementations myself. Pretty
+early it was clear that I didn't want any external libraries in this project and I only allowed myself to use a few
+of the internal libraries which Python has out of the box. I you want to learn more about the separate libraries I
+used, you can look into the separate [libraries document](LIBRARIES.md).
 
-- Submission:
-  - Fork this repository and submit your work as a pull request. We wont judge any work submitted before the deadline. Dont worry, you can keep pushing fixes until the last second.
-  - Include a detailed README in your project folder explaining your approach, setup instructions, and any assumptions made.
-  - We will contact the winner(s) either through github PR messages, or on Discord, whichever happens to work out for you.
+The only external library I allowed myself to use was [FontAwesome](https://github.com/FortAwesome/Font-Awesome)
+which provided the icons I used in the frontend. The whole backend runs without needing any external libraries and
+the rest of the frontend is written in vanilla `HTML`, `CSS` and `JS`.
 
-- Deadline:
-  - <b>All submissions must be made by `Dec. 23rd 23:59:59 PM UTC`.</b>
-<br>
+The HTTPS interface runs using the `ssl` python library. The only problem with this approach is that the library
+doesn't generate any keys or certificates that are neccecary for HTTPS to work. Because of this, I decided to
+utilize the `openssl` command line utility that comes either with the standard Linux system utilities or with GIT
+on Windows.
 
-# 🛡️ Disqualification grounds:
-There are, of course, ways to get disqualified; let's get through them.
-- Working as a >2 person team. Once again, this is designed for individuals or duos at best; else it would be too simple.
-- Stealing/skidding code, or any other wording thereof. We want to see *your* code, not someone else's.
-- Submitting after the deadline. Even a second, if the date says 24th (UTC), you're out. Be on time.
-- Trying to find loopholes in the rules.
-- `More will be added if needed.`
-<br>
+If you want to use your own certificate and private RSA key, you can do so by putting them in the root directory of
+this project and naming them `key.pem` and `cert.pem` respectively. After a restart of the backend, they should get
+loaded automatically.
 
-# ✨ Judging Criteria:
-Submissions will be evaluated on the following, in this exact order:
+## Web Interface
 
-| Criteria      |    Description                                                                                         |
-|---------------|--------------------------------------------------------------------------------------------------------|
-| Functionality | Does the server meet the required functionality? Are all features working?                             |
-| Performance   | How well does the server perform under typical use cases?                                              |
-| Dependancies  | How many godforsaken libraries do we have to be concerned about having vulnerabilities we can't patch? |
-| Code Quality  | Is the code clean, maintainable, and well-documented?                                                  |
-| Innovation    | Bonus points for creativity and implementing optional features like WebDAV.                            |
-| Design        | Is the architecture thoughtful? Is it scalable and efficient?                                          |
+As stated before I wrote the whole frontend in vanilla `HTML`, `CSS` and `JS`. Using any libraries here would
+defeat the whole purpose of this project, because the frontend is the part that needs the least amount of things to
+run, because everything gets computed in the backend.
 
-<sub>By the way, <b>we know</b> that 18 days for all of this is not a lot, especially during the holiday season, etc. <b>This is on purpose</b>! We want to see your ability to prioritize and see how you handle time constraints. We are the unreasonable manager you have to satisfy, but don't worry; we won't deduct points for missing things. You start at 0, and the only way is up!</sub><br>
+After starting the backend you can find the frontend interface by using your browser to go to the address where the
+server which is running the backend is located. You can access this using HTTP or HTTPS, but when using a
+self-signed certificate, the browser might complain when using HTTPS. In the development environment this can
+savely be ignored.
 
-#### The judges:
-- @claracrazy
-- @aurorasmiles
-- @jmbit
-<br>
+After logging in, you will find the file picker in which you can see all your uploaded files. In the beginning this
+will be empty, but you can upload files using the upload box in the bottom left. For creating folders, you
+double-click on the `Add Folder` icon located at the end of the file listing.
 
-# 🏆 Prizes:
-### Grand Prize:
-- `1-Year Subscription to Boot.dev (A comprehensive platform for backend development courses, valued at over $300)`<br>
-The ultimate resource for mastering backend development and expanding your coding skills!
-- `1-Year Subscription to netdata.cloud (120 Nodes) (Your #1 Server Monitoring Suite)`<br>
-Feel the pulse of your infrastructure, with high-resolution metrics, journal logs and real-time visualizations.
+Files can be opened/previewed by double-clicking on them, just like folders. More options are available by
+right-clicking on files or folders. The sidebar on the left shows you a quick access to the folders located in the
+root directory of your file storage.
 
-### Second Place:
-- `1-Year Subscription for a Hetzner Server (up to CPX31)`<br>
-Your next project(s) will be running on a stable, highly available server on a trusted network for an entire year! 
-- `1-Year Subscription to netdata.cloud (90 Nodes) (Your #1 Server Monitoring Suite)`<br>
-Feel the pulse of your infrastructure, with high-resolution metrics, journal logs and real-time visualizations.
-- `1-Month Subscription to Boot.dev (A comprehensive platform for backend development courses)`<br>
-The ultimate resource for mastering backend development and expanding your coding skills!
+When previewing a file, you can generate a share link by clicking the `Share` button. This will generate a link
+with which anyone can access the file. You can protect this link using a password or leave it open for everyone to
+see.
 
-### Third Place:
-- `1-Year Subscription of Github Pro`<br>
-Boost your workflow with premium developer tools and integrations directly on GitHub.
-- `1-Year Subscription to netdata.cloud (45 Nodes) (Your #1 Server Monitoring Suite)`<br>
-Feel the pulse of your infrastructure, with high-resolution metrics, journal logs and real-time visualizations.
-- `1-Month Subscription to Boot.dev (A comprehensive platform for backend development courses)`<br>
-The ultimate resource for mastering backend development and expanding your coding skills!
+For the design I took inspiration on the [Notion](https://notion.so) web interface. I still tried to keep the
+design original, but you might see a few similarities.
 
-### Honorable Mentions (2):<br><sub>For people that have created something unique that peaked out interest, yet did not make the podium.</sub>
-- `1-Year Subscription to netdata.cloud (Your #1 Server Monitoring Suite)` <b>(30 Nodes & 15 nodes)</b><br>
-Feel the pulse of your infrastructure, with high-resolution metrics, journal logs and real-time visualizations.
-<br>
+## WebDAV
 
-# 🚀 Getting Started:
-- Fork this repo to get started.
-- Set up your development environment on Linux.
-- Code up the required file server with features outlined in the Challenge Overview.
-- Test your implementation thoroughly.
-- Submit your solution as a pull request.<br>
-<sub>All valid PRs will be accepted into their own branch once the contest concludes</sub><br>
-<br>
+I also implemented a WebDAV server which runs on the same ports as HTTP/HTTPS. You can use basically any software
+which supports the WebDAV protocol, like `WinSCP` or `FileZilla`. As an important note,
+**Windows Explorer is not supported**.
 
-# 🐾 Optional Bonus Features:
-Want to go the extra mile? Consider implementing some of these optional features:
-- Cross-platform compatibility: Ensure smooth operation on both Linux and Windows systems.
-- Protocol support: Add support for protocols like WebDAV or SFTP.
-- Advanced authentication: Implement OAuth2 or token-based authentication mechanisms.
-- File preview: Add the ability to preview files (like PDFs or images) through the web interface.
-<br>
+### Windows Explorer
 
-# 🎅 Why We're Doing This:
-The holidays are a time for creativity, growth, and giving back. What better way to celebrate than by challenging ourselves to build something impactful? This contest is designed to inspire developers to sharpen their backend skills, think critically, and craft solutions that balance functionality and elegance. Whether you’re a seasoned coder or just starting out, this is your chance to showcase your talents, learn from others, and have fun along the way. Plus, who doesn’t love a little friendly competition during the festive season? 🎄✨
-<br>
+I personally chose to not support Windows Explorer, because after implementing the WebDAV protocol I noticed, that
+Explorer does not follow the protocol as defined in [RFC 4918](https://datatracker.ietf.org/doc/html/rfc4918). This
+lead to hours of debugging which lead to no result. Even other servers supporting WebDAV do not completely work
+with Windows Explorer, for example CivetWeb as discussed in
+[this issue](https://github.com/civetweb/civetweb/issues/1040).
 
-# 💬 Questions?
-Feel free to use the discussion tab on this repo or reach out to us on [discord](https://discord.gg/crazyco). We’re excited to see your creative solutions!
+As of now, Windows Explorer only partially works. Opening and deleting already existing files should work. Renaming
+or moving a file works, even though Explorer raises an error. After closing this error popup and reloading the
+directory, the rename or move should be visible. Uploading files does not work at all.
 
-Good luck, and may the best coder win! 🎄✨
+**Important:** A little side note here is that the file manager in GNOME, which also has WebDAV capabilities works
+completely. Other file managers of Linux desktop environments have yet to be tested, but I assume they should also
+work.
+
+## How to run
+
+**Important:** Only Python versions 3.12 and above work! Please upgrade from any version below!
+
+### Tested environments
+
+The following environments have been tested and fully work:
+
+- Debian 12.8.0 on x86-64
+
+  ⇨ Installed with standard system utilities and upgraded from Python 3.11 to 3.12
+
+- Fedora 41 Workstation
+
+  ⇨ Additionally installed openssl using package manager
+
+- Ubuntu 20.04.6 LTS
+
+  ⇨ Installed openssl using package manager and upgraded from Python 3.8 to 3.12.
+
+  <small>_Make sure, all standard python libraries get installed!_</small>
+
+- Windows 11 23H2
+
+  ⇨ Installed Python 3.12, installed GIT and added GIT's bin folder to PATH
+
+### Startup
+
+If you are on **Linux**, you need to add the executable flag to the `run.sh` using `chmod +x ./run.sh` and run the
+`run.sh` file using sudo, because otherwise the application cannot use the ports `80` and `443`. To change the
+ports used and not use sudo, you can edit the `src/constants.py` file.
+
+To start the backend, you simply run the `run.sh` or `run.bat` file, according to your system. Upon first startup,
+the script will generate a private RSA key and a self-signed certificate which will be used for HTTPS. You can
+savely ignore the output of this process.
+
+When started up successfully, you should see the following log messages. After this, the backend started up
+successfully and you can access the frontend interface like described [above](#web-interface).
+
+Stopping the application can be achieved using <kbd>Ctrl</kbd> + <kbd>C</kbd>. Any file upload in progress will
+immediately be stopped which might result in partial files. Be careful!
+
+```text
+[I] Starting server on 0.0.0.0:80
+[I] Starting server on 0.0.0.0:443
+```
+
+## Known problems
+
+### Public access
+
+Everyone having access to the web interface can upload as many files as they please which might quickly lead to no
+space on the HDD and/or high CPU usage. Be careful where you expose the IP.
+
+### Compressed data
+
+The server supports receiving compressed data, which might lead to zip-bomb like problems where the server tries to
+decompress a few hundred TB of data.
+
+### Denial of service
+
+Rate limitation is yet to be implemented, meaning the server accepts every request and tries to fulfill it. Again,
+be careful where you expose the IP.
+
+### Many files in one folder
+
+The storage architecture keeps all uploaded files inside one folder, which might lead to problems when storing
+multiple millions of files on modern file systems. An important note here is that older file systems don't handle
+this many files inside one folder this gracefully. For example FAT32 or exFAT might suffer with less files stored.
+
+## Unimplemented features
+
+- Own implementation of the SSL protocol, mimetype guessing and a JSON parser
+- More advanced file sharing or sharing of files only with specified users
