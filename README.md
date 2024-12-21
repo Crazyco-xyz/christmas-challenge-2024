@@ -1,5 +1,11 @@
 # Readme
 
+This is my entry to the [2024 Christmas Coding Challenge by CrazyCo](CHALLENGE.md). If you just want to run this
+application yourself and not read tons of text, feel free to head down to [How to run](#how-to-run).
+
+For all others, I have written my approach to this project, what I decided to focus on and my thoughts bethind the
+implementation below. _Have fun reading!_
+
 ## Architecture
 
 ### How are the files stored?
@@ -15,8 +21,8 @@ should only happen when storing millions of files. More about this [below](#many
 ### Why did I use Python?
 
 I mainly used Python because it can run on many systems without problems. Obviously the uncompiled nature of Python
-makes the application slower than compiled languages. But this also means there is only one version of the
-application which can run on many different environments, unlike compiled languages where you would need one binary
+makes the application slower than compiled languages. This also means there is only one version of the application
+which can run on many different environments, unlike compiled languages where you would need one binary
 for each platform.
 
 ## Libraries
@@ -52,7 +58,7 @@ savely be ignored.
 
 After logging in, you will find the file picker in which you can see all your uploaded files. In the beginning this
 will be empty, but you can upload files using the upload box in the bottom left. For creating folders, you
-double-click on the `Add Folder` icon located at the end of the file listing.
+double-click on the `Create Folder` icon located at the end of the file listing.
 
 Files can be opened/previewed by double-clicking on them, just like folders. More options are available by
 right-clicking on files or folders. The sidebar on the left shows you a quick access to the folders located in the
@@ -89,27 +95,27 @@ work.
 
 ## How to run
 
-**Important:** Only Python versions 3.12 and above work! Please upgrade from any version below!
+**Only Python versions 3.12 and above work! Please upgrade from any version below!**
 
 ### Tested environments
 
 The following environments have been tested and fully work:
 
-- Debian 12.8.0 on x86-64
+- **Debian 12.8.0 on x86-64**
 
   ⇨ Installed with standard system utilities and upgraded from Python 3.11 to 3.12
 
-- Fedora 41 Workstation
+- **Fedora 41 Workstation**
 
   ⇨ Additionally installed openssl using package manager
 
-- Ubuntu 20.04.6 LTS
+- **Ubuntu 20.04.6 LTS**
 
   ⇨ Installed openssl using package manager and upgraded from Python 3.8 to 3.12.
 
   <small>_Make sure, all standard python libraries get installed!_</small>
 
-- Windows 11 23H2
+- **Windows 11 23H2**
 
   ⇨ Installed Python 3.12, installed GIT and added GIT's bin folder to PATH
 
@@ -124,7 +130,7 @@ the script will generate a private RSA key and a self-signed certificate which w
 savely ignore the output of this process.
 
 When started up successfully, you should see the following log messages. After this, the backend started up
-successfully and you can access the frontend interface like described [above](#web-interface).
+successfully and you can access the frontend interface like [described above](#web-interface).
 
 Stopping the application can be achieved using <kbd>Ctrl</kbd> + <kbd>C</kbd>. Any file upload in progress will
 immediately be stopped which might result in partial files. Be careful!
